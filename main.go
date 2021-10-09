@@ -55,7 +55,6 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 			// domain, path
 			fmt.Printf("\t %s = %s\n", k, v)
 		}
-		fmt.Println()
 		// TODO fetch target from db
 		// test example: that was read from db
 		fmt.Fprint(w, dbQuery())
@@ -95,14 +94,16 @@ func main() {
 	logger.Println("Server is starting...")
 
 	router := http.NewServeMux()
+
+	router.HandleFunc("/", all)
+	router.HandleFunc("/firstrun", all)
+	router.HandleFunc("/options", all)
+	router.HandleFunc("/bypassed", bypassed)
+	router.HandleFunc("/navigate", bypassed)
+	router.HandleFunc("/crowd-bypassed", bypassed)
+	router.HandleFunc("/crowd/query_v1", crowdQueryV1)
+	router.HandleFunc("/crowd/contribute_v1", crowdContributeV1)
 	router.Handle("/healthz", healthz())
-	http.HandleFunc("/firstrun", all)
-	http.HandleFunc("/options", all)
-	http.HandleFunc("/bypassed", bypassed)
-	http.HandleFunc("/navigate", bypassed)
-	http.HandleFunc("/crowd-bypassed", bypassed)
-	http.HandleFunc("/crowd/query_v1", crowdQueryV1)
-	http.HandleFunc("/crowd/contribute_v1", crowdContributeV1)
 
 	nextRequestID := func() string {
 		return fmt.Sprintf("%d", time.Now().UnixNano())

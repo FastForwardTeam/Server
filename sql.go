@@ -18,4 +18,6 @@ func openDb() {
 	db.SetMaxIdleConns(10)
 }
 
-func dbQuery()
+func dbQuery() string {
+	return "fastforward.team"
+}
