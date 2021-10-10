@@ -8,6 +8,9 @@ import (
 )
 
 var port string
+var dbUser string
+var dbPassword string
+var dbName string
 
 func parseEnv() {
 	err := godotenv.Load()
@@ -16,4 +19,7 @@ func parseEnv() {
 	}
 
 	port = os.Getenv("port")
+	dbUser = os.Getenv("dbUser")
+	dbPassword = os.Getenv("dbPassword")
+	dbName = os.Getenv("dbName")
 }

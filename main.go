@@ -1,6 +1,5 @@
 /////////////////////////////////////////////////////////////////////////
 /*
-
 /*
 /*
 /*
@@ -28,6 +27,7 @@ const (
 
 var (
 	Version string = "0.0.1"
+	logger         = log.New(os.Stdout, "http: ", log.LstdFlags)
 )
 
 func bypassed(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +38,12 @@ func bypassed(w http.ResponseWriter, r *http.Request) {
 }
 
 func all(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	if r.URL.Path == "/" {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+	}
+
 }
 
 //Request will be application/x-www-form-urlencoded
@@ -87,14 +92,18 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	parseEnv()
-	logger := log.New(os.Stdout, "http: ", log.LstdFlags)
 
-	logger.Println("FastForward server")
-	logger.Println("Version:", Version)
-	logger.Println("Server is starting...")
+	logStart()
+	connectDb()
+
+	//check connection
+	err := db.Ping()
+	if err != nil {
+		panic(err.Error())
+	}
+	logger.Println("Connected to database")
 
 	router := http.NewServeMux()
-
 	router.HandleFunc("/", all)
 	router.HandleFunc("/firstrun", all)
 	router.HandleFunc("/options", all)
@@ -145,33 +154,4 @@ func main() {
 
 	<-done
 	logger.Println("Server stopped")
-}
-
-func logging(logger *log.Logger) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			defer func() {
-				requestID, ok := r.Context().Value(requestIDKey).(string)
-				if !ok {
-					requestID = "unknown"
-				}
-				logger.Println(requestID, r.Method, r.URL.Path, r.RemoteAddr, r.UserAgent())
-			}()
-			next.ServeHTTP(w, r)
-		})
-	}
-}
-
-func tracing(nextRequestID func() string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			requestID := r.Header.Get("X-Request-Id")
-			if requestID == "" {
-				requestID = nextRequestID()
-			}
-			ctx := context.WithValue(r.Context(), requestIDKey, requestID)
-			w.Header().Set("X-Request-Id", requestID)
-			next.ServeHTTP(w, r.WithContext(ctx))
-		})
-	}
 }

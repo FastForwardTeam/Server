@@ -2,22 +2,24 @@ package main
 
 import (
 	"database/sql"
-	"time"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func openDb() {
-	db, err := sql.Open("mysql", "user:password@/dbname")
+var db *sql.DB
+
+func connectDb() {
+	var err error
+
+	creds := fmt.Sprintf("%s:%s@/%s", dbUser, dbPassword, dbName)
+
+	db, err = sql.Open("mysql", creds)
 	if err != nil {
 		panic(err)
 	}
-	// See "Important settings" section.
-	db.SetConnMaxLifetime(time.Minute * 3)
-	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(10)
 }
 
 func dbQuery() string {
-	return "fastforward.team"
+	return "test"
 }
