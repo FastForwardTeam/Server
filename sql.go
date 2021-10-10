@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -20,6 +21,22 @@ func connectDb() {
 	}
 }
 
-func dbQuery() string {
-	return "test"
+// returns bool and string
+func dbQuery(domain string, path string) (bool, string) {
+
+	stmt, err := db.Prepare("SELECT destination FROM links WHERE domain = ? AND path = ?")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+	var dest string
+	switch err = stmt.QueryRow(domain, path).Scan(&dest); err {
+	case sql.ErrNoRows:
+		return false, "not found in database"
+	case nil:
+		return true, dest
+	default:
+		panic(err)
+	}
+
 }

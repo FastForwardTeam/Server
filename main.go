@@ -48,27 +48,6 @@ func all(w http.ResponseWriter, r *http.Request) {
 
 //Request will be application/x-www-form-urlencoded
 
-func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("["+r.Method+"] ", r.URL.String(), "Referer", r.Referer())
-	if r.Method == "POST" {
-		err := r.ParseForm()
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			panic(err)
-		}
-		for k, v := range r.Form {
-			// domain, path
-			fmt.Printf("\t %s = %s\n", k, v)
-		}
-		// TODO fetch target from db
-		// test example: that was read from db
-		fmt.Fprint(w, dbQuery())
-	} else {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-}
-
 func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("["+r.Method+"] ", r.URL.String(), "Referer", r.Referer())
 	if r.Method == "POST" {
@@ -82,7 +61,6 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 			// path, domain, target
 			fmt.Printf("\t %s = %s\n", k, v)
 		}
-		fmt.Println()
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -135,6 +113,11 @@ func main() {
 		<-quit
 		logger.Println("Server is shutting down...")
 		atomic.StoreInt32(&healthy, 0)
+
+		err := db.Close()
+		if err != nil {
+			panic(err.Error())
+		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
