@@ -48,7 +48,6 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
 	}
 }
 
@@ -73,6 +72,5 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
 	}
 }

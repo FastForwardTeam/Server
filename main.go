@@ -26,7 +26,7 @@ const (
 )
 
 var (
-	Version string = "0.0.1"
+	version string = "0.0.1"
 	logger         = log.New(os.Stdout, "http: ", log.LstdFlags)
 )
 

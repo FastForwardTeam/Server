@@ -21,7 +21,7 @@ func connectDb() {
 	}
 }
 
-// returns bool and string
+// returns (wether exists), (path if it exists)
 func dbQuery(domain string, path string) (bool, string) {
 
 	stmt, err := db.Prepare("SELECT destination FROM links WHERE domain = ? AND path = ?")
@@ -32,7 +32,7 @@ func dbQuery(domain string, path string) (bool, string) {
 	var dest string
 	switch err = stmt.QueryRow(domain, path).Scan(&dest); err {
 	case sql.ErrNoRows:
-		return false, "not found in database"
+		return false, ""
 	case nil:
 		return true, dest
 	default:
@@ -51,7 +51,6 @@ func dbInsert(domain string, path string, target string, hashedIP string) bool {
 	_, err = stmt.Exec(domain, path, target, hashedIP)
 	if err == nil {
 		return true
-	} else {
-		panic(err)
 	}
+	panic(err)
 }
