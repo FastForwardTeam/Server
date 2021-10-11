@@ -48,33 +48,13 @@ func all(w http.ResponseWriter, r *http.Request) {
 
 //Request will be application/x-www-form-urlencoded
 
-func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("["+r.Method+"] ", r.URL.String(), "Referer", r.Referer())
-	if r.Method == "POST" {
-		err := r.ParseForm()
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			panic(err)
-		}
-		for k, v := range r.Form {
-			// TODO upsert to db
-			// path, domain, target
-			fmt.Printf("\t %s = %s\n", k, v)
-		}
-	} else {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-}
-
 func main() {
 	parseEnv()
 
 	logStart()
 	connectDb()
 
-	//check connection
+	//check connection to db
 	err := db.Ping()
 	if err != nil {
 		panic(err.Error())

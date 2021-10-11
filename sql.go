@@ -40,3 +40,18 @@ func dbQuery(domain string, path string) (bool, string) {
 	}
 
 }
+
+func dbInsert(domain string, path string, target string, hashedIP string) bool {
+
+	stmt, err := db.Prepare("INSERT INTO links (domain, path, destination, hashed_IP) VALUES (?, ?, ?, ?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(domain, path, target, hashedIP)
+	if err == nil {
+		return true
+	} else {
+		panic(err)
+	}
+}
