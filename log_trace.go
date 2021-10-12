@@ -9,7 +9,7 @@ import (
 //Shows server starting message
 func logStart() {
 	logger.Println("FastForward server")
-	logger.Println("Version:", Version)
+	logger.Println("Version:", version)
 	logger.Println("Server is starting...")
 
 }
