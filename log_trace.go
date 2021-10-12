@@ -4,6 +4,14 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+
+	"gopkg.in/natefinch/lumberjack.v2"
+)
+
+var (
+	logger *log.Logger
 )
 
 //Shows server starting message
@@ -41,4 +49,18 @@ func tracing(nextRequestID func() string) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+func createLogFile() {
+	err := os.MkdirAll(logFile, os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
+
+	logger = log.New(&lumberjack.Logger{
+		Filename:   filepath.Join(logFile, "server.log"),
+		MaxSize:    500,
+		MaxBackups: 10,
+		MaxAge:     28,
+	}, "", log.LstdFlags)
+
 }

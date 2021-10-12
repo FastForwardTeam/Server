@@ -11,7 +11,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -27,7 +26,6 @@ const (
 
 var (
 	version string = "0.0.1"
-	logger         = log.New(os.Stdout, "http: ", log.LstdFlags)
 )
 
 func bypassed(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +47,9 @@ func all(w http.ResponseWriter, r *http.Request) {
 //Request will be application/x-www-form-urlencoded
 
 func main() {
+
 	parseEnv()
+	createLogFile()
 
 	logStart()
 	connectDb()
