@@ -54,3 +54,7 @@ func dbInsert(domain string, path string, target string, hashedIP string) bool {
 	}
 	panic(err)
 }
+
+func dbVerified(domain string, path string) {
+
+}
