@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -25,7 +26,8 @@ func adminPanelRouters(h *http.ServeMux) {
 	h.Handle("/admin/", http.StripPrefix("/admin/", fs))
 
 	h.HandleFunc("/admin/api/signup", signUp)
-	h.HandleFunc("/admin/api/login", authToken)
+	h.HandleFunc("/admin/api/login", genToken)
+	h.HandleFunc("/admin/api/reported", returnReported)
 }
 
 // Inserts creds into db
@@ -54,6 +56,7 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	dbAdminCredsInsert(input.Username, string(hashedPassword))
+	w.WriteHeader(http.StatusOK)
 }
 
 func loadRSAKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
@@ -95,7 +98,7 @@ func loadRSAKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 }
 
 // returns JWT
-func authToken(w http.ResponseWriter, r *http.Request) {
+func genToken(w http.ResponseWriter, r *http.Request) {
 
 	type Input struct {
 		Username string `json:"username"`
@@ -126,16 +129,64 @@ func authToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"username": input.Username,
+		"Username": input.Username,
 	})
-
-	// The claims object allows you to store information in the actual token.
 
 	tokenString, _ := token.SignedString(RSAprivateKey)
 
-	// tokenString Contains the actual token you should share with your client.
-
 	w.WriteHeader(http.StatusOK)
 	io.WriteString(w, tokenString)
+
+}
+
+// Converts sql rows and coloumns into json string
+
+func checkToken(tokenString string) (username string, err error) {
+	claims := jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+		return RSApublicKey, nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if token.Valid {
+		return claims["Username"].(string), nil
+	}
+
+	return "", errors.New("Token invalid")
+}
+
+func parseAuthHeader(r *http.Request) (username string, ok bool) {
+	reqToken := r.Header.Get("Authorization")
+	splitToken := strings.Split(reqToken, "Bearer ")
+	if len(splitToken) != 2 {
+		return "", false
+	}
+	reqToken = splitToken[1]
+	username, err := checkToken(reqToken)
+	if err != nil {
+		return "", false
+	}
+	return username, true
+}
+
+func returnReported(w http.ResponseWriter, r *http.Request) {
+	username, valid := parseAuthHeader(r)
+	if !valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	logger.Println(username + " accessed /admin/api/reported")
+	jsonData, err := dbQueryReported()
+	if err != nil {
+		panic(err)
+	}
+
+	w.Write(jsonData)
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
 
 }

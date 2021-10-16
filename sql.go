@@ -4,6 +4,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -131,6 +132,36 @@ func dbAdminCredsQuery(username string) (bool, string) {
 		panic(err)
 	}
 
+}
+
+func dbQueryReported() ([]byte, error) {
+	rows, err := db.Query("SELECT * FROM links WHERE reports > 0")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	type Entry struct {
+		Id          int    `json:"id"`
+		Domain      string `json:"domian"`
+		Path        string `json:"path"`
+		Destination string `json:"destination"`
+		Hashed_IP   string `json:"hashed_IP"`
+		Reports     int    `json:"reports"`
+	}
+
+	var users []Entry
+
+	for rows.Next() {
+		var id, reports int
+		var domain, path, destination, hashed_IP string
+
+		rows.Scan(&id, &domain, &path, &destination, &hashed_IP, &reports)
+		users = append(users, Entry{id, domain, path, destination, hashed_IP, reports})
+	}
+
+	entryBytes, _ := json.Marshal(&users)
+
+	return entryBytes, nil
 }
 
 func dbReport(domain string, path string) {
