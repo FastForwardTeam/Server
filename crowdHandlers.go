@@ -3,7 +3,8 @@ package main
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"fmt"
+	"io"
+	"math/rand"
 	"net/http"
 )
 
@@ -47,6 +48,13 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Randomly ask(force) user to verify
+	n := rand.Intn(10)
+	if n == 1 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		logger.Println(err)
@@ -59,7 +67,7 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 	exists, path := dbQuery(d, p)
 	if exists {
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, path)
+		io.WriteString(w, path)
 	} else {
 		w.WriteHeader(http.StatusNoContent)
 	}
@@ -87,14 +95,14 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d, p, t := r.FormValue("domain"), r.FormValue("path"), r.FormValue("target")
+
+	// Return 201 anyway
 	exists, path := dbQuery(d, p)
 	if exists {
-		if p == path {
-			dbVerified(d, p)
-			w.WriteHeader(http.StatusCreated)
-		} else {
-			//TODO: if path is confilcting
+		if p != path {
+			dbReport(d, p)
 		}
+		w.WriteHeader(http.StatusCreated)
 		return
 	}
 

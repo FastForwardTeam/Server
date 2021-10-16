@@ -57,9 +57,15 @@ func main() {
 	//check connection to db
 	err := db.Ping()
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	logger.Println("Connected to database")
+
+	RSAprivateKey, RSApublicKey, err = loadRSAKeys()
+	if err != nil {
+		panic(err)
+	}
+	logger.Println("Loaded RSA keys")
 
 	router := http.NewServeMux()
 	router.HandleFunc("/", all)
@@ -70,6 +76,9 @@ func main() {
 	router.HandleFunc("/crowd-bypassed", bypassed)
 	router.HandleFunc("/crowd/query_v1", crowdQueryV1)
 	router.HandleFunc("/crowd/contribute_v1", crowdContributeV1)
+
+	adminPanelRouters(router)
+
 	router.Handle("/healthz", healthz())
 
 	nextRequestID := func() string {
