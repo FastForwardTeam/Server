@@ -4,7 +4,7 @@
 
 2) Install it 
 
-`sudo apt install mysql-server mysql-client`
+`sudo apt install mariadb-server`
 
 3) Secure the install by:
 
