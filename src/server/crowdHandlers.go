@@ -93,7 +93,7 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 }
 
 func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
-
+/*
 	hip := sha256(getUserIP(r))
 	if isIPblacklisted(hip) {
 		w.WriteHeader(http.StatusForbidden)
@@ -125,5 +125,6 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbInsert(d, p, t, hip)
+	*/
 	w.WriteHeader(http.StatusCreated)
 }
