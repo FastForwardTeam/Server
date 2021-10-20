@@ -1,0 +1,10 @@
+[Unit]
+Description=FastForward Server
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/fastforward
+
+[Install]
+WantedBy=multi-user.target

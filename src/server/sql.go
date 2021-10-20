@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -29,7 +28,7 @@ func dbQuery(domain string, path string) (bool, string) {
 
 	stmt, err := db.Prepare("SELECT destination FROM links WHERE domain = ? AND path = ?")
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 	defer stmt.Close()
 	var dest string
@@ -48,7 +47,7 @@ func dbInsert(domain string, path string, target string, hashedIP string) {
 
 	stmt, err := db.Prepare("INSERT INTO links (domain, path, destination, hashed_IP) VALUES (?, ?, ?, ?)")
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec(domain, path, target, hashedIP)
@@ -104,7 +103,7 @@ func dbAdminCredsInsert(username string, password string) bool {
 
 	stmt, err := db.Prepare("INSERT INTO admin_creds (username, password) VALUES (?, ?)")
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec(username, password)
@@ -119,7 +118,7 @@ func dbAdminCredsQuery(username string) (bool, string) {
 
 	stmt, err := db.Prepare("SELECT password FROM admin_creds WHERE username = ?")
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 	defer stmt.Close()
 	var password string
@@ -133,6 +132,8 @@ func dbAdminCredsQuery(username string) (bool, string) {
 	}
 
 }
+
+// Returns (user exists) (password if exists)
 
 func dbQueryReported() ([]byte, error) {
 	rows, err := db.Query("SELECT * FROM links WHERE reports > 0")

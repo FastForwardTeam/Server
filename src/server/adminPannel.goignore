@@ -1,6 +1,7 @@
 //TODO: add env var to check if signup is allowed
-package main
-
+// package main
+//NOT READY YET
+/*
 import (
 	"crypto/rsa"
 	"crypto/x509"
@@ -30,7 +31,7 @@ func adminPanelRouters(h *http.ServeMux) {
 	h.HandleFunc("/admin/api/reported", returnReported)
 }
 
-// Inserts creds into db
+
 func signUp(w http.ResponseWriter, r *http.Request) {
 
 	type Input struct {
@@ -190,3 +191,4 @@ func returnReported(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 }
+*/

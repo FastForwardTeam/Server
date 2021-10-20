@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -52,15 +53,18 @@ func tracing(nextRequestID func() string) func(http.Handler) http.Handler {
 }
 func createLogFile() {
 	err := os.MkdirAll(logFile, os.ModePerm)
-	if err != nil {
-		panic(err)
-	}
+	e, err := os.OpenFile(filepath.Join(logFile, "server.log"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 
-	logger = log.New(&lumberjack.Logger{
-		Filename:   filepath.Join(logFile, "server.log"),
-		MaxSize:    500,
-		MaxBackups: 10,
-		MaxAge:     28,
-	}, "", log.LstdFlags)
+	if err != nil {
+		fmt.Printf("error opening file: %v", err)
+		os.Exit(1)
+	}
+	logger = log.New(e, "", log.Ldate|log.Ltime)
+	logger.SetOutput(&lumberjack.Logger{
+		Filename:   (filepath.Join(logFile, "server.log")),
+		MaxSize:    1,  // megabytes after which new file is created
+		MaxBackups: 3,  // number of backups
+		MaxAge:     28, //days
+	})
 
 }

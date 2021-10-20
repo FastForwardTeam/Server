@@ -25,7 +25,7 @@ const (
 )
 
 var (
-	version string = "0.0.1"
+	version string = "0.1.0"
 )
 
 func bypassed(w http.ResponseWriter, r *http.Request) {
@@ -44,8 +44,6 @@ func all(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//Request will be application/x-www-form-urlencoded
-
 func main() {
 
 	parseEnv()
@@ -61,11 +59,11 @@ func main() {
 	}
 	logger.Println("Connected to database")
 
-	RSAprivateKey, RSApublicKey, err = loadRSAKeys()
-	if err != nil {
-		panic(err)
-	}
-	logger.Println("Loaded RSA keys")
+	//	RSAprivateKey, RSApublicKey, err = loadRSAKeys()
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	logger.Println("Loaded RSA keys")
 
 	router := http.NewServeMux()
 	router.HandleFunc("/", all)
@@ -77,7 +75,7 @@ func main() {
 	router.HandleFunc("/crowd/query_v1", crowdQueryV1)
 	router.HandleFunc("/crowd/contribute_v1", crowdContributeV1)
 
-	adminPanelRouters(router)
+	//	adminPanelRouters(router)
 
 	router.Handle("/healthz", healthz())
 

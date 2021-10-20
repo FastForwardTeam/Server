@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"io"
-	"math/rand"
 	"net/http"
 )
 
@@ -48,13 +47,13 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Randomly ask(force) user to verify
+	/* Randomly ask(force) user to verify
 	n := rand.Intn(10)
 	if n == 1 {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-
+	*/
 	err := r.ParseForm()
 	if err != nil {
 		logger.Println(err)

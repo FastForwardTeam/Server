@@ -15,23 +15,22 @@ var dbName string
 var logFile string
 var ipList []string
 var panelDir string
+var USER_DIR string
 
 func parseEnv() {
-	err := godotenv.Load()
+	err := godotenv.Load("/etc/fastforward/.env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		err = godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
 	}
-	usrdir, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	USER_DIR = os.Getenv("USER_DIR")
 	port = os.Getenv("port")
-	logFile = strings.ReplaceAll(os.Getenv("log_file"), "USER_DIR", usrdir)
+	logFile = strings.ReplaceAll(os.Getenv("log_file"), "USER_DIR", USER_DIR)
 	ipList = strings.Split(os.Getenv("banned_ip_list"), "\n")
 	dbName = os.Getenv("dbName")
 	dbUser = os.Getenv("dbUser")
 	dbPassword = os.Getenv("dbPassword")
-	panelDir = strings.ReplaceAll(os.Getenv("panel_dir"), "USER_DIR", usrdir)
-	log.Println(panelDir)
+	panelDir = strings.ReplaceAll(os.Getenv("panel_dir"), "USER_DIR", USER_DIR)
 }
