@@ -1,5 +1,4 @@
 /*
-
 Copyright 2021 NotAProton
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,11 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-package main
-
 */
-
-//TODO: Return errors for all funcs
 
 package main
 
@@ -38,16 +33,15 @@ func connectDb() {
 
 	db, err = sql.Open("mysql", creds)
 	if err != nil {
-		panic(err)
+		logger.Fatalln(err)
 	}
 }
 
-// returns (wether exists), (path if it exists)
+// returns (if exists), (destination if exists)
 func dbQuery(domain string, path string) (bool, string) {
-
 	stmt, err := db.Prepare("SELECT destination FROM links WHERE domain = ? AND path = ?")
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatalln(err)
 	}
 	defer stmt.Close()
 	var dest string
@@ -57,7 +51,8 @@ func dbQuery(domain string, path string) (bool, string) {
 	case nil:
 		return true, dest
 	default:
-		panic(err)
+		logger.Fatalln(err)
+		return false, "" //Fatal stops the program, return is unnecessary
 	}
 
 }
@@ -71,13 +66,14 @@ func dbInsert(domain string, path string, target string, hashedIP string) {
 	defer stmt.Close()
 	_, err = stmt.Exec(domain, path, target, hashedIP)
 
-	panic(err)
+	if err != nil {
+		logger.Fatalln(err)
+	}
 }
 
 // Admin stuff
 
 func dbSoftDelete(domain string, path string) error {
-
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -118,18 +114,36 @@ func dbSoftDelete(domain string, path string) error {
 	return tx.Commit()
 }
 
-func dbAdminCredsInsert(username string, password string) bool {
+func dbAdminCredsInsert(username string, password string) {
 
 	stmt, err := db.Prepare("INSERT INTO admin_creds (username, password) VALUES (?, ?)")
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatalln(err)
 	}
 	defer stmt.Close()
+
 	_, err = stmt.Exec(username, password)
-	if err == nil {
-		return true
+
+	if err != nil {
+		logger.Fatalln(err)
 	}
-	panic(err)
+
+}
+
+func dbAdminRefTokenInsert(username string, uuid string) {
+
+	stmt, err := db.Prepare("UPDATE admin_creds SET token_id = ? WHERE username = ?;")
+	if err != nil {
+		logger.Fatalln(err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(uuid, username)
+
+	if err != nil {
+		logger.Fatalln(err)
+	}
+
 }
 
 // Returns (user exists) (password if exists)
@@ -147,7 +161,29 @@ func dbAdminCredsQuery(username string) (bool, string) {
 	case nil:
 		return true, password
 	default:
-		panic(err)
+		logger.Fatalln(err)
+		return false, ""
+	}
+
+}
+
+// Returns (user exists) (Ref token if exists)
+func dbAdminRefTokenQuery(username string) (bool, string) {
+
+	stmt, err := db.Prepare("SELECT token_id FROM admin_creds WHERE username = ?")
+	if err != nil {
+		logger.Fatal(err)
+	}
+	defer stmt.Close()
+	var token string
+	switch err = stmt.QueryRow(username).Scan(&token); err {
+	case sql.ErrNoRows:
+		return false, ""
+	case nil:
+		return true, token
+	default:
+		logger.Fatalln(err)
+		return false, ""
 	}
 
 }
@@ -155,35 +191,47 @@ func dbAdminCredsQuery(username string) (bool, string) {
 // Returns (user exists) (password if exists)
 
 func dbQueryReported() ([]byte, error) {
-	rows, err := db.Query("SELECT * FROM links WHERE reports > 0")
+	rows, err := db.Query("SELECT * FROM links WHERE times_reported > 0")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	type Entry struct {
-		Id          int    `json:"id"`
-		Domain      string `json:"domian"`
-		Path        string `json:"path"`
-		Destination string `json:"destination"`
-		Hashed_IP   string `json:"hashed_IP"`
-		Reports     int    `json:"reports"`
+		Id             int    `json:"id"`
+		Domain         string `json:"domian"`
+		Path           string `json:"path"`
+		Destination    string `json:"destination"`
+		Times_reported int    `json:"times_reported"`
+		Hashed_IP      string `json:"hashed_IP"`
 	}
 
 	var users []Entry
 
 	for rows.Next() {
-		var id, reports int
+		var id, times_reported int
 		var domain, path, destination, hashed_IP string
 
-		rows.Scan(&id, &domain, &path, &destination, &hashed_IP, &reports)
-		users = append(users, Entry{id, domain, path, destination, hashed_IP, reports})
+		rows.Scan(&id, &domain, &path, &destination, &times_reported, &hashed_IP)
+		users = append(users, Entry{id, domain, path, destination, times_reported, hashed_IP})
 	}
 
-	entryBytes, _ := json.Marshal(&users)
+	entryBytes, _ := json.MarshalIndent(&users, "", "  ")
 
 	return entryBytes, nil
 }
 
+//Increases times_reported 1
 func dbReport(domain string, path string) {
 
+	stmt, err := db.Prepare("UPDATE links SET times_reported = times_reported + 1 WHERE domain = ? AND path = ?")
+	if err != nil {
+		logger.Fatalln(err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(domain, path)
+
+	if err != nil {
+		logger.Fatalln(err)
+	}
 }

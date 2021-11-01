@@ -1,5 +1,4 @@
 /*
-
 Copyright 2021 NotAProton
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +12,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-package main
-
 */
 
 package main
@@ -23,12 +20,8 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"io"
+	"math/rand"
 	"net/http"
-)
-
-var (
-	k string
-	v string
 )
 
 func sha256(s string) string {
@@ -65,14 +58,11 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
-
-	/* Randomly ask(force) user to verify
 	n := rand.Intn(10)
 	if n == 1 {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	*/
 	err := r.ParseForm()
 	if err != nil {
 		logger.Println(err)
@@ -93,7 +83,7 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 }
 
 func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
-/*
+
 	hip := sha256(getUserIP(r))
 	if isIPblacklisted(hip) {
 		w.WriteHeader(http.StatusForbidden)
@@ -114,10 +104,9 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 
 	d, p, t := r.FormValue("domain"), r.FormValue("path"), r.FormValue("target")
 
-	// Return 201 anyway
-	exists, path := dbQuery(d, p)
+	exists, destination := dbQuery(d, p)
 	if exists {
-		if p != path {
+		if p != destination {
 			dbReport(d, p)
 		}
 		w.WriteHeader(http.StatusCreated)
@@ -125,6 +114,5 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbInsert(d, p, t, hip)
-	*/
 	w.WriteHeader(http.StatusCreated)
 }

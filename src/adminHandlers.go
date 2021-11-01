@@ -1,6 +1,5 @@
 /*
-
-Copyright 2021 FastForward Server Contributors
+Copyright 2021 NotAProton
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,32 +12,19 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-package main
-
 */
 
 //TODO: add env var to check if signup is allowed
-// package main
+package main
+
 //NOT READY YET
-/*
+
 import (
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
-	"errors"
-	"io"
 	"net/http"
-	"os"
 	"strings"
 
-	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
-)
-
-var (
-	RSAprivateKey *rsa.PrivateKey
-	RSApublicKey  *rsa.PublicKey
 )
 
 func adminPanelRouters(h *http.ServeMux) {
@@ -46,10 +32,11 @@ func adminPanelRouters(h *http.ServeMux) {
 	h.Handle("/admin/", http.StripPrefix("/admin/", fs))
 
 	h.HandleFunc("/admin/api/signup", signUp)
-	h.HandleFunc("/admin/api/login", genToken)
 	h.HandleFunc("/admin/api/reported", returnReported)
-}
+	h.HandleFunc("/admin/api/newreftoken", refTokenHandler)
+	h.HandleFunc("/admin/api/newacctoken", accTokenHandler)
 
+}
 
 func signUp(w http.ResponseWriter, r *http.Request) {
 
@@ -67,7 +54,11 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
+	alreadyExists, _ := dbAdminCredsQuery(input.Username)
+	if alreadyExists {
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
 	// Hashing the password with the default cost of 10
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -76,49 +67,31 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	dbAdminCredsInsert(input.Username, string(hashedPassword))
+	logger.Println(input.Username + " signed up as admin")
 	w.WriteHeader(http.StatusOK)
 }
 
-func loadRSAKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
-	// Get private key
+func returnReported(w http.ResponseWriter, r *http.Request) {
+	username, valid := parseAuthHeader(r)
+	if !valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
-	privPEM, err := os.ReadFile("./key.rsa")
+	logger.Println(username + " accessed /admin/api/reported")
+	jsonData, err := dbQueryReported()
 	if err != nil {
-		return nil, nil, err
-	}
-	block, _ := pem.Decode([]byte(privPEM))
-	if block == nil {
-		return nil, nil, errors.New("failed to parse PEM file containing the private key")
+		panic(err)
 	}
 
-	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		return nil, nil, err
-	}
+	w.Write(jsonData)
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
 
-	// Get public key
-
-	pubPEM, err := os.ReadFile("./key.rsa.pub")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	block, _ = pem.Decode([]byte(pubPEM))
-	if block == nil {
-		return nil, nil, errors.New("failed to parse PEM block containing the Public key")
-	}
-
-	parsedPub, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pub := parsedPub.(*rsa.PublicKey)
-	return priv, pub, nil
 }
 
-// returns JWT
-func genToken(w http.ResponseWriter, r *http.Request) {
+// takes username and password, returns refresh token
+func refTokenHandler(w http.ResponseWriter, r *http.Request) {
 
 	type Input struct {
 		Username string `json:"username"`
@@ -148,34 +121,57 @@ func genToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"Username": input.Username,
-	})
+	refTokenString := genRefToken(input.Username)
 
-	tokenString, _ := token.SignedString(RSAprivateKey)
+	type Response struct {
+		RefToken string `json:"reftoken"`
+	}
 
+	w.Header().Set("Content-Type", "application/json")
+	resp := Response{
+		RefToken: refTokenString,
+	}
+	j, _ := json.MarshalIndent(resp, "", "  ")
+	w.Write(j)
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, tokenString)
-
 }
 
-// Converts sql rows and coloumns into json string
+// takes refresh token, returns access token
+func accTokenHandler(w http.ResponseWriter, r *http.Request) {
+	type Input struct {
+		RefToken string `json:"reftoken"`
+	}
 
-func checkToken(tokenString string) (username string, err error) {
-	claims := jwt.MapClaims{}
-	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
-		return RSApublicKey, nil
-	})
+	var input Input
+
+	err := json.NewDecoder(r.Body).Decode(&input)
 
 	if err != nil {
-		return "", err
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
-	if token.Valid {
-		return claims["Username"].(string), nil
+	accTokenString, err := genAccessToken(input.RefToken)
+
+	if err != nil {
+		if err != nil {
+			logger.Println(err)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 	}
 
-	return "", errors.New("Token invalid")
+	type Response struct {
+		AccToken string `json:"acctoken"`
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	resp := Response{
+		AccToken: accTokenString,
+	}
+	j, _ := json.MarshalIndent(resp, "", "  ")
+	w.Write(j)
+	w.WriteHeader(http.StatusOK)
 }
 
 func parseAuthHeader(r *http.Request) (username string, ok bool) {
@@ -185,29 +181,9 @@ func parseAuthHeader(r *http.Request) (username string, ok bool) {
 		return "", false
 	}
 	reqToken = splitToken[1]
-	username, err := checkToken(reqToken)
+	username, err := pasreAccessToken(reqToken)
 	if err != nil {
 		return "", false
 	}
 	return username, true
 }
-
-func returnReported(w http.ResponseWriter, r *http.Request) {
-	username, valid := parseAuthHeader(r)
-	if !valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	logger.Println(username + " accessed /admin/api/reported")
-	jsonData, err := dbQueryReported()
-	if err != nil {
-		panic(err)
-	}
-
-	w.Write(jsonData)
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-
-}
-*/

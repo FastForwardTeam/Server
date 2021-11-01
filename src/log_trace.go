@@ -1,5 +1,4 @@
 /*
-
 Copyright 2021 NotAProton
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +12,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-package main
-
 */
 
 package main
@@ -36,6 +33,7 @@ var (
 
 //Shows server starting message
 func logStart() {
+	logger.Println("")
 	logger.Println("FastForward server")
 	logger.Println("Version:", version)
 	logger.Println("Server is starting...")
@@ -72,6 +70,11 @@ func tracing(nextRequestID func() string) func(http.Handler) http.Handler {
 }
 func createLogFile() {
 	err := os.MkdirAll(logFile, os.ModePerm)
+	if err != nil {
+		fmt.Printf("error opening file: %v", err)
+		os.Exit(1)
+	}
+
 	e, err := os.OpenFile(filepath.Join(logFile, "server.log"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 
 	if err != nil {
