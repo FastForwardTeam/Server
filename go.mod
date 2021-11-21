@@ -4,11 +4,7 @@ go 1.17
 
 require (
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/joho/godotenv v1.4.0
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-)
-
-require (
-	github.com/BurntSushi/toml v0.4.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.1.0
+	github.com/google/uuid v1.3.0
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 )

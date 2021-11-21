@@ -22,7 +22,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -38,13 +37,9 @@ var (
 func loadRSAKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 	// Get private key
 
-	privPEM, err := os.ReadFile("../config/key.rsa")
-	if err != nil {
-		return nil, nil, err
-	}
 	block, _ := pem.Decode([]byte(privPEM))
 	if block == nil {
-		return nil, nil, errors.New("failed to parse PEM file containing the private key")
+		return nil, nil, errors.New("failed to env var containing the private key")
 	}
 
 	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
@@ -54,14 +49,9 @@ func loadRSAKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 
 	// Get public key
 
-	pubPEM, err := os.ReadFile("../config/key.rsa.pub")
-	if err != nil {
-		return nil, nil, err
-	}
-
 	block, _ = pem.Decode([]byte(pubPEM))
 	if block == nil {
-		return nil, nil, errors.New("failed to parse PEM block containing the Public key")
+		return nil, nil, errors.New("failed to parse env var containing the Public key")
 	}
 
 	parsedPub, err := x509.ParsePKIXPublicKey(block.Bytes)
@@ -95,8 +85,8 @@ func genRefToken(username string) string {
 	return tokenString
 }
 
-// Takes refresh token, verifies and returns access token
-func genAccessToken(refToken string) (accToken string, err error) {
+// Takes refresh token, verifies and returns username and access token
+func genAccessToken(refToken string) (username string, accToken string, err error) {
 	token, err := jwt.Parse(refToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, errors.New("Unexpected signing method:" + token.Header["alg"].(string))
@@ -106,7 +96,7 @@ func genAccessToken(refToken string) (accToken string, err error) {
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		if claims["sub"].(string) != "ref_token" {
-			return "", errors.New("not refresh token")
+			return claims["aud"].(string), "", errors.New("not refresh token")
 		}
 
 		username := claims["aud"].(string)
@@ -115,11 +105,11 @@ func genAccessToken(refToken string) (accToken string, err error) {
 		ok, tokenInDB := dbAdminRefTokenQuery(username)
 
 		if !ok {
-			return "", errors.New("user not found")
+			return claims["aud"].(string), "", errors.New("user not found")
 		}
 
 		if uuid != tokenInDB {
-			return "", errors.New("token mismatch")
+			return claims["aud"].(string), "", errors.New("token mismatch")
 		}
 
 		accToken := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
@@ -130,12 +120,12 @@ func genAccessToken(refToken string) (accToken string, err error) {
 
 		accTokenString, err := accToken.SignedString(RSAprivateKey)
 		if err != nil {
-			return "", err
+			return claims["aud"].(string), "", err
 		}
 
-		return accTokenString, nil
+		return claims["aud"].(string), accTokenString, nil
 	} else {
-		return "", err
+		return claims["aud"].(string), "", err
 	}
 }
 

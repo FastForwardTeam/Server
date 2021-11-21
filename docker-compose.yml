@@ -1,0 +1,60 @@
+version: '3'
+services:
+  ffserver:
+    build: .
+    ports: 
+      - 5000:5000
+    environment:
+      - port=5000
+      - privPEM=
+    restart: on-failure
+    volumes:
+      - api:/usr/src/app/
+    depends_on:
+      - fullstack-mariadb     
+    networks:
+      - fullstack
+  
+  fullstack-mariadb:
+    image: mariadb:10.2
+    environment:
+      MYSQL_ROOT_PASSWORD: $dbRootPass
+      MYSQL_DATABASE: $dbName
+      MYSQL_USER: $dbUser
+      MYSQL_PASSWORD: $dbUserPass
+    networks:
+      - fullstack
+    restart: on-failure
+    volumes:
+      - database_mysql:/var/lib/mysql
+      - type: bind
+        source: ./config/sql-scripts/
+        target: /docker-entrypoint-initdb.d
+
+  nginx:
+    build: 
+      context: ./nginx
+      dockerfile: Dockerfile
+      args:
+        exposedport: 80
+    ports:
+      - "80:80"
+    depends_on:
+      - "ffserver"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - fullstack
+
+volumes:
+  api:
+  database_mysql:
+
+# Networks to be created to facilitate communication between containers
+networks:
+  fullstack:
+    driver: bridge

@@ -29,6 +29,13 @@ func sha256(s string) string {
 	h.Write([]byte(s))
 	return hex.EncodeToString(h.Sum(nil))
 }
+func getRequestId(r *http.Request) string {
+	requestID, ok := r.Context().Value(requestIDKey).(string)
+	if !ok {
+		requestID = "unknown"
+	}
+	return requestID
+}
 
 func getUserIP(r *http.Request) string {
 	IPAddress := r.Header.Get("X-Real-Ip")
@@ -72,8 +79,8 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 
 	d, p := r.FormValue("domain"), r.FormValue("path")
 	logger.Println(d, p)
-	exists, path := dbQuery(d, p)
-	if exists {
+	exists, path, votedfordeletion := dbQuery(d, p)
+	if exists && votedfordeletion == 0 {
 		w.WriteHeader(http.StatusOK)
 		io.WriteString(w, path)
 	} else {
@@ -104,9 +111,9 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 
 	d, p, t := r.FormValue("domain"), r.FormValue("path"), r.FormValue("target")
 
-	exists, destination := dbQuery(d, p)
+	exists, destination, _ := dbQuery(d, p)
 	if exists {
-		if p != destination {
+		if t != destination {
 			dbReport(d, p)
 		}
 		w.WriteHeader(http.StatusCreated)
