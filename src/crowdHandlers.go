@@ -124,7 +124,7 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 	sanitize(&d, &p, &t)
 	if d == "" || p == "" || t == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		logger.Println(getRequestId(r) + " rejected crowd contribution [Illegal charecters] ")
+		logger.Println(getRequestId(r) + " rejected crowd contribution [Illegal characters] ")
 		return
 	}
 	exists, destination, _ := dbQuery(d, p)
