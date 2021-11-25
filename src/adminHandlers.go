@@ -56,6 +56,8 @@ func adminPanelRouters(h *http.ServeMux) {
 		return
 	}
 
+	sanitize(&input.Username)
+
 	alreadyExists, _ := dbAdminCredsQuery(input.Username)
 	if alreadyExists {
 		w.WriteHeader(http.StatusConflict)
@@ -91,6 +93,8 @@ func adminChangePassword(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	sanitize(&input.Username, &input.OldPassword, &input.NewPassword)
 
 	exists, hashedpassword := dbAdminCredsQuery(input.Username)
 	if !exists {
@@ -221,6 +225,7 @@ func refTokenHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	sanitize(&input.Username, &input.Password)
 
 	exists, hashedpassword := dbAdminCredsQuery(input.Username)
 
@@ -233,6 +238,7 @@ func refTokenHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
+		logger.Println(getRequestId(r) + " username pasword mismatch for " + input.Username)
 		return
 	}
 

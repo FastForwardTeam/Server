@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"sync/atomic"
 	"time"
 )
@@ -34,6 +35,7 @@ const (
 
 var (
 	version string = "0.1.0"
+	reg     *regexp.Regexp
 )
 
 func bypassed(w http.ResponseWriter, r *http.Request) {
@@ -72,6 +74,11 @@ func main() {
 		logger.Fatalln(err)
 	}
 	logger.Println("Loaded RSA keys")
+
+	reg, err = regexp.Compile(`[^a-zA-Z0-9\/\-.%=]+`)
+	if err != nil {
+		logger.Fatal(err)
+	}
 
 	router := http.NewServeMux()
 	router.HandleFunc("/", all)

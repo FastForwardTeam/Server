@@ -22,7 +22,16 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+
+	anyascii "github.com/anyascii/go"
 )
+
+func sanitize(s ...*string) {
+	for _, i := range s {
+		*i = anyascii.Transliterate(*i)
+		*i = reg.ReplaceAllString(*i, "")
+	}
+}
 
 func sha256(s string) string {
 	h := sha1.New()
@@ -58,8 +67,10 @@ func isIPblacklisted(hash string) bool {
 }
 
 func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
+	ref := r.Referer()
+	sanitize(&ref)
 
-	logger.Println("["+r.Method+"] ", r.URL.String(), "Referer", r.Referer())
+	logger.Println(getRequestId(r), "["+r.Method+"] ", r.URL.String(), "Referer", ref)
 
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -78,7 +89,7 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d, p := r.FormValue("domain"), r.FormValue("path")
-	logger.Println(d, p)
+	sanitize(&d, &p)
 	exists, path, votedfordeletion := dbQuery(d, p)
 	if exists && votedfordeletion == 0 {
 		w.WriteHeader(http.StatusOK)
@@ -110,7 +121,12 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d, p, t := r.FormValue("domain"), r.FormValue("path"), r.FormValue("target")
-
+	sanitize(&d, &p, &t)
+	if d == "" || p == "" || t == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		logger.Println(getRequestId(r) + " rejected crowd contribution [Illegal charecters] ")
+		return
+	}
 	exists, destination, _ := dbQuery(d, p)
 	if exists {
 		if t != destination {

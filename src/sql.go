@@ -147,6 +147,7 @@ func dbAdminVoteDelete(username string, domain string, path string) {
 	}
 }
 
+/*
 func dbAdminCredsInsert(username string, password string) {
 
 	stmt, err := db.Prepare("INSERT INTO admin_creds (username, password) VALUES (?, ?)")
@@ -162,6 +163,7 @@ func dbAdminCredsInsert(username string, password string) {
 	}
 
 }
+*/
 
 func dbAdminPasswordChange(username string, newPassword string) {
 

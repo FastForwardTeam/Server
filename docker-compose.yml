@@ -2,16 +2,20 @@ version: '3'
 services:
   ffserver:
     build: .
-    ports: 
-      - 5000:5000
+    expose: 
+      - 5000
     environment:
-      - port=5000
-      - privPEM=
+      - port=$port
+      - privPEM=$privPEM
+      - pubPEM=$pubPEM
+      - dbUser=$dbUser
+      - dbPassword=$dbUserPass
+      - dbName=$dbName
     restart: on-failure
     volumes:
       - api:/usr/src/app/
     depends_on:
-      - fullstack-mariadb     
+      - fullstack-mariadb
     networks:
       - fullstack
   
@@ -38,9 +42,11 @@ services:
       args:
         exposedport: 80
     ports:
-      - "80:80"
+      - 80:80
     depends_on:
-      - "ffserver"
+      - ffserver
+    networks:
+      - fullstack
 
   adminer:
     image: adminer
