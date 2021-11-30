@@ -17,7 +17,7 @@ search: true
 
 Version 1.0.0
 
-Welcome to the FastForward Server API docs! It is recommended to use [Hoppscotch](https://github.com/hoppscotch/hoppscotch) or [Insomnia](https://insomnia.rest/download) to get familiar with the api before developing.
+Welcome to the FastForward Server API docs! It is recommended to use [Hoppscotch]https://hoppscotch.io/) or [Insomnia](https://insomnia.rest/download) to get familiar with the api before developing.
 
 # Crowd Query
 
