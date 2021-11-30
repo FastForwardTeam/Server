@@ -15,11 +15,11 @@ services:
     volumes:
       - api:/usr/src/app/
     depends_on:
-      - fullstack-mariadb
+      - db
     networks:
       - fullstack
   
-  fullstack-mariadb:
+  db:
     image: mariadb:10.2
     environment:
       MYSQL_ROOT_PASSWORD: $dbRootPass

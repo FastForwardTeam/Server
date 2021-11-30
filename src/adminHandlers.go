@@ -34,7 +34,7 @@ func adminPanelRouters(h *http.ServeMux) {
 	h.HandleFunc("/admin/api/newreftoken", refTokenHandler)
 	h.HandleFunc("/admin/api/newacctoken", accTokenHandler)
 
-	h.HandleFunc("/admin/api/reported", returnReported)
+	h.HandleFunc("/admin/api/getreported", returnReported)
 	h.HandleFunc("/admin/api/votedelete", voteDelete)
 
 }
@@ -78,6 +78,11 @@ func adminPanelRouters(h *http.ServeMux) {
 
 func adminChangePassword(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
 	type Input struct {
 		Username    string `json:"username"`
 		OldPassword string `json:"oldpassword"`
@@ -98,8 +103,8 @@ func adminChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	exists, hashedpassword := dbAdminCredsQuery(input.Username)
 	if !exists {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("user not found"))
+		w.WriteHeader(http.StatusUnauthorized)
+		logger.Println(getRequestId(r), "user not found:", input.Username)
 		return
 	}
 
@@ -159,6 +164,10 @@ func returnReported(w http.ResponseWriter, r *http.Request) {
 }
 
 func voteDelete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
 	username, valid := parseAuthHeader(r)
 	if !valid {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -183,8 +192,8 @@ func voteDelete(w http.ResponseWriter, r *http.Request) {
 	exists, _, votedfordeletion := dbQuery(input.Domain, input.Path)
 
 	if !exists {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("domain and path not found"))
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		logger.Println(getRequestId(r), "domain and path not found")
 		return
 	}
 
@@ -211,6 +220,11 @@ func voteDelete(w http.ResponseWriter, r *http.Request) {
 
 // takes username and password, returns refresh token
 func refTokenHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
 
 	type Input struct {
 		Username string `json:"username"`
@@ -261,6 +275,12 @@ func refTokenHandler(w http.ResponseWriter, r *http.Request) {
 
 // takes refresh token, returns access token
 func accTokenHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
 	type Input struct {
 		RefToken string `json:"reftoken"`
 	}

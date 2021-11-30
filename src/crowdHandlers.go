@@ -17,8 +17,8 @@ limitations under the License.
 package main
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
+	"crypto/sha256"
+	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
@@ -33,10 +33,10 @@ func sanitize(s ...*string) {
 	}
 }
 
-func sha256(s string) string {
-	h := sha1.New()
-	h.Write([]byte(s))
-	return hex.EncodeToString(h.Sum(nil))
+func hashSha256(s string) string {
+	sum := sha256.Sum256([]byte(s))
+	hexstring := fmt.Sprintf("%x", sum)
+	return hexstring
 }
 func getRequestId(r *http.Request) string {
 	requestID, ok := r.Context().Value(requestIDKey).(string)
@@ -102,7 +102,7 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 
 func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 
-	hip := sha256(getUserIP(r))
+	hip := hashSha256(getUserIP(r))
 	if isIPblacklisted(hip) {
 		w.WriteHeader(http.StatusForbidden)
 		return

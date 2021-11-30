@@ -29,7 +29,7 @@ var db *sql.DB
 func connectDb() {
 	var err error
 
-	creds := fmt.Sprintf("%s:%s@tcp(fullstack-mariadb:3306)/%s", dbUser, dbPassword, dbName)
+	creds := fmt.Sprintf("%s:%s@tcp(db:3306)/%s", dbUser, dbPassword, dbName)
 
 	db, err = sql.Open("mysql", creds)
 	if err != nil {
@@ -97,7 +97,7 @@ func dbAdminSoftDelete(domain string, path string) error {
 	}
 
 	{
-		stmt, err := tx.Prepare(`INSERT INTO recycle_bin
+		stmt, err := tx.Prepare(`INSERT INTO recycle_bin (id, domain, path, destination, times_reported, hashed_IP, votedfordeletion, voted_by)
 							SELECT *
 							FROM links
 							WHERE domain = ? AND path = ?;`)

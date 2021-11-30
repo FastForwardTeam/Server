@@ -34,7 +34,7 @@ const (
 )
 
 var (
-	version string = "0.1.0"
+	version string = "1.0.0"
 	reg     *regexp.Regexp
 )
 
