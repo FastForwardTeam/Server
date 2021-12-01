@@ -121,7 +121,8 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d, p, t := r.FormValue("domain"), r.FormValue("path"), r.FormValue("target")
-	sanitize(&d, &p, &t)
+	sanitize(&d, &p)
+	t = regForHTTP.ReplaceAllString(t, "")
 	if d == "" || p == "" || t == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		logger.Println(getRequestId(r) + " rejected crowd contribution [Illegal characters] ")

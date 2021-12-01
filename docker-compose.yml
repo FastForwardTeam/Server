@@ -1,23 +1,68 @@
 version: '3'
+
 services:
+  traefik:
+    image: "traefik:v2.5"
+    container_name: "traefik"
+    command:
+      # - "--log.level=DEBUG"
+
+      #docker
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=web"
+
+      #http to https
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.websecure.address=:443"
+
+      #SSl
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      # - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=${acme_email}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    labels:
+      # Dashboard api
+      - "traefik.http.routers.api.rule=Host(`${domain}`)"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${dashboardcreds}"
+    ports:
+      - "443:443"
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - web
+
   ffserver:
     build: .
-    expose: 
-      - 5000
     environment:
-      - port=$port
+      - port=:5000
       - privPEM=$privPEM
       - pubPEM=$pubPEM
       - dbUser=$dbUser
       - dbPassword=$dbUserPass
       - dbName=$dbName
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.ffserver.rule=Host(`${domain}`) && (PathPrefix(`/admin`) || PathPrefix(`/crowd`))"
+
+      - "traefik.http.routers.ffserver.entrypoints=websecure"
+      - "traefik.http.routers.ffserver.tls.certresolver=myresolver"
+      - "traefik.port=5000"
     restart: on-failure
-    volumes:
-      - api:/usr/src/app/
     depends_on:
       - db
     networks:
-      - fullstack
+      - web
+      - internal
   
   db:
     image: mariadb:10.2
@@ -26,41 +71,43 @@ services:
       MYSQL_DATABASE: $dbName
       MYSQL_USER: $dbUser
       MYSQL_PASSWORD: $dbUserPass
-    networks:
-      - fullstack
     restart: on-failure
     volumes:
       - database_mysql:/var/lib/mysql
       - type: bind
         source: ./config/sql-scripts/
         target: /docker-entrypoint-initdb.d
-
-  nginx:
-    build: 
-      context: ./nginx
-      dockerfile: Dockerfile
-      args:
-        exposedport: 80
-    ports:
-      - 80:80
-    depends_on:
-      - ffserver
+    labels:
+      - traefik.enable=false
     networks:
-      - fullstack
+      - internal
+
 
   adminer:
     image: adminer
     restart: always
-    ports:
-      - 8080:8080
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.adminer.rule=Host(`${domain}`) && PathPrefix(`/db`)"
+
+      - "traefik.http.middlewares.db-auth.basicauth.users=${db_access_creds}"
+      - "traefik.http.routers.adminer.middlewares=db-auth"
+
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.tls.certresolver=myresolver"
+      - "traefik.port=8080"
     networks:
-      - fullstack
+      - web
+      - internal
+    depends_on:
+      - db
 
 volumes:
-  api:
   database_mysql:
 
-# Networks to be created to facilitate communication between containers
 networks:
-  fullstack:
-    driver: bridge
+  web:
+    external: true
+  internal:
+    external: false

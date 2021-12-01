@@ -34,8 +34,9 @@ const (
 )
 
 var (
-	version string = "1.0.0"
-	reg     *regexp.Regexp
+	version    string = "1.0.0"
+	reg        *regexp.Regexp
+	regForHTTP *regexp.Regexp
 )
 
 func bypassed(w http.ResponseWriter, r *http.Request) {
@@ -79,6 +80,7 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
+	regForHTTP = regexp.MustCompile(`(^\w+:|^)\/\/`)
 
 	router := http.NewServeMux()
 	router.HandleFunc("/", all)
