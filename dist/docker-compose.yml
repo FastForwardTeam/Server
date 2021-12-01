@@ -1,0 +1,119 @@
+version: '3'
+
+services:
+  traefik:
+    image: "traefik:v2.5"
+    container_name: "traefik"
+    command:
+      # - "--log.level=DEBUG"
+      - "--api.dashboard=true"
+
+      #docker
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=web"
+
+      #http to https
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.websecure.address=:443"
+
+      #SSl
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      # - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=${acme_email}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    labels:
+      # Dashboard api
+    - "traefik.enable=true"
+    - "traefik.http.routers.dashboard.rule=Host(`${domain}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+    - 'traefik.http.routers.dashboard.entrypoints=websecure'
+    - 'traefik.http.routers.dashboard.tls.certresolver=myresolver'
+    - 'traefik.http.routers.dashboard.service=api@internal'
+    - 'traefik.http.routers.dashboard.middlewares=auth'
+    - "traefik.http.middlewares.auth.basicauth.users=${dashboardcreds}"
+    # Dummy service for Swarm port detection. The port can be any valid integer value.
+    - 'traefik.http.services.api@internal.loadbalancer.server.port=8080'
+
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - web
+
+  ffserver:
+    image: ghcr.io/fastforward/server:latest
+    environment:
+      - port=:5000
+      - privPEM=$privPEM
+      - pubPEM=$pubPEM
+      - dbUser=$dbUser
+      - dbPassword=$dbUserPass
+      - dbName=$dbName
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.ffserver.rule=Host(`${domain}`) && (PathPrefix(`/admin`) || PathPrefix(`/crowd`))"
+
+      - "traefik.http.routers.ffserver.entrypoints=websecure"
+      - "traefik.http.routers.ffserver.tls.certresolver=myresolver"
+      - "traefik.port=5000"
+    restart: on-failure
+    depends_on:
+      - db
+    networks:
+      - web
+      - internal
+  
+  db:
+    image: mariadb:10.2
+    environment:
+      MYSQL_ROOT_PASSWORD: $dbRootPass
+      MYSQL_DATABASE: $dbName
+      MYSQL_USER: $dbUser
+      MYSQL_PASSWORD: $dbUserPass
+    restart: on-failure
+    volumes:
+      - database_mysql:/var/lib/mysql
+      - type: bind
+        source: ./config/sql-scripts/
+        target: /docker-entrypoint-initdb.d
+    labels:
+      - traefik.enable=false
+    networks:
+      - internal
+
+
+  adminer:
+    image: adminer
+    restart: always
+    labels:
+      - "traefik.enable=true"
+
+      - "traefik.http.routers.adminer.rule=Host(`${domain}`) && PathPrefix(`/db`)"
+
+      - "traefik.http.middlewares.db-auth.basicauth.users=${db_access_creds}"
+      - "traefik.http.routers.adminer.middlewares=db-auth"
+
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.tls.certresolver=myresolver"
+      - "traefik.port=8080"
+    networks:
+      - web
+      - internal
+    depends_on:
+      - db
+
+volumes:
+  database_mysql:
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
