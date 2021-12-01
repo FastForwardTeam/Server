@@ -47,7 +47,7 @@ services:
       - web
 
   ffserver:
-    image: ghcr.io/fastforward/server:latest
+    image: ghcr.io/fastforwardteam/server:latest
     environment:
       - port=:5000
       - privPEM=$privPEM
