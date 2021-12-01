@@ -6,6 +6,7 @@ services:
     container_name: "traefik"
     command:
       # - "--log.level=DEBUG"
+      - "--api.dashboard=true"
 
       #docker
       - "--providers.docker=true"
@@ -26,14 +27,19 @@ services:
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     labels:
       # Dashboard api
-      - "traefik.http.routers.api.rule=Host(`${domain}`)"
-      - "traefik.http.routers.api.service=api@internal"
-      - "traefik.http.routers.api.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=${dashboardcreds}"
+    - "traefik.enable=true"
+    - "traefik.http.routers.dashboard.rule=Host(`${domain}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+    - 'traefik.http.routers.dashboard.entrypoints=websecure'
+    - 'traefik.http.routers.dashboard.tls.certresolver=myresolver'
+    - 'traefik.http.routers.dashboard.service=api@internal'
+    - 'traefik.http.routers.dashboard.middlewares=auth'
+    - "traefik.http.middlewares.auth.basicauth.users=${dashboardcreds}"
+    # Dummy service for Swarm port detection. The port can be any valid integer value.
+    - 'traefik.http.services.api@internal.loadbalancer.server.port=8080'
+
     ports:
       - "443:443"
       - "80:80"
-      - "8080:8080"
     volumes:
       - "./letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
