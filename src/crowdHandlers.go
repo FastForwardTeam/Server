@@ -1,5 +1,4 @@
 /*
-
 Copyright 2021 NotAProton
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,28 +12,38 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-package main
-
 */
 
 package main
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
+	"crypto/sha256"
+	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
+
+	anyascii "github.com/anyascii/go"
 )
 
-var (
-	k string
-	v string
-)
+func sanitize(s ...*string) {
+	for _, i := range s {
+		*i = anyascii.Transliterate(*i)
+		*i = reg.ReplaceAllString(*i, "")
+	}
+}
 
-func sha256(s string) string {
-	h := sha1.New()
-	h.Write([]byte(s))
-	return hex.EncodeToString(h.Sum(nil))
+func hashSha256(s string) string {
+	sum := sha256.Sum256([]byte(s))
+	hexstring := fmt.Sprintf("%x", sum)
+	return hexstring
+}
+func getRequestId(r *http.Request) string {
+	requestID, ok := r.Context().Value(requestIDKey).(string)
+	if !ok {
+		requestID = "unknown"
+	}
+	return requestID
 }
 
 func getUserIP(r *http.Request) string {
@@ -58,21 +67,20 @@ func isIPblacklisted(hash string) bool {
 }
 
 func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
+	ref := r.Referer()
+	sanitize(&ref)
 
-	logger.Println("["+r.Method+"] ", r.URL.String(), "Referer", r.Referer())
+	logger.Println(getRequestId(r), "["+r.Method+"] ", r.URL.String(), "Referer", ref)
 
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
-
-	/* Randomly ask(force) user to verify
 	n := rand.Intn(10)
 	if n == 1 {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	*/
 	err := r.ParseForm()
 	if err != nil {
 		logger.Println(err)
@@ -81,9 +89,9 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d, p := r.FormValue("domain"), r.FormValue("path")
-	logger.Println(d, p)
-	exists, path := dbQuery(d, p)
-	if exists {
+	sanitize(&d, &p)
+	exists, path, votedfordeletion := dbQuery(d, p)
+	if exists && votedfordeletion == 0 {
 		w.WriteHeader(http.StatusOK)
 		io.WriteString(w, path)
 	} else {
@@ -93,8 +101,8 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 }
 
 func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
-/*
-	hip := sha256(getUserIP(r))
+
+	hip := hashSha256(getUserIP(r))
 	if isIPblacklisted(hip) {
 		w.WriteHeader(http.StatusForbidden)
 		return
@@ -113,11 +121,16 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d, p, t := r.FormValue("domain"), r.FormValue("path"), r.FormValue("target")
-
-	// Return 201 anyway
-	exists, path := dbQuery(d, p)
+	sanitize(&d, &p)
+	t = regForHTTP.ReplaceAllString(t, "")
+	if d == "" || p == "" || t == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		logger.Println(getRequestId(r) + " rejected crowd contribution [Illegal characters] ")
+		return
+	}
+	exists, destination, _ := dbQuery(d, p)
 	if exists {
-		if p != path {
+		if t != destination {
 			dbReport(d, p)
 		}
 		w.WriteHeader(http.StatusCreated)
@@ -125,6 +138,5 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbInsert(d, p, t, hip)
-	*/
 	w.WriteHeader(http.StatusCreated)
 }

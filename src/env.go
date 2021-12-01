@@ -1,5 +1,4 @@
 /*
-
 Copyright 2021 NotAProton
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +12,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-package main
-
 */
 
 package main
@@ -23,33 +20,33 @@ import (
 	"log"
 	"os"
 	"strings"
-
-	"github.com/joho/godotenv"
 )
 
 var port string
 var dbUser string
 var dbPassword string
 var dbName string
-var logFile string
 var ipList []string
-var panelDir string
 var USER_DIR string
+var panelDir string
+var privPEM string
+var pubPEM string
 
 func parseEnv() {
-	err := godotenv.Load("/etc/fastforward/.env")
-	if err != nil {
-		err = godotenv.Load()
-		if err != nil {
-			log.Fatal("Error loading .env file")
+	envVars := []string{"port", "privPEM", "pubPEM", "dbName", "dbUser", "dbPassword"}
+	for _, evar := range envVars {
+		os.LookupEnv(evar)
+		_, set := os.LookupEnv(evar)
+		if !set {
+			log.Fatalln("Environment variable " + evar + " is not set")
 		}
 	}
-	USER_DIR = os.Getenv("USER_DIR")
 	port = os.Getenv("port")
-	logFile = strings.ReplaceAll(os.Getenv("log_file"), "USER_DIR", USER_DIR)
+	privPEM = os.Getenv("privPEM")
+	pubPEM = os.Getenv("pubPEM")
 	ipList = strings.Split(os.Getenv("banned_ip_list"), "\n")
 	dbName = os.Getenv("dbName")
 	dbUser = os.Getenv("dbUser")
 	dbPassword = os.Getenv("dbPassword")
-	panelDir = strings.ReplaceAll(os.Getenv("panel_dir"), "USER_DIR", USER_DIR)
+	panelDir = "./static/admin/"
 }

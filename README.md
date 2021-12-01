@@ -1,4 +1,2 @@
 # Server
-the crowd sourcing server for universal-bypass-renewed
-
-Deploying: read [deploying](./docs/deploying.md)
+The crowd sourcing server for FastForward
