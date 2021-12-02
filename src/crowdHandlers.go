@@ -93,7 +93,7 @@ func crowdQueryV1(w http.ResponseWriter, r *http.Request) {
 	exists, path, votedfordeletion := dbQuery(d, p)
 	if exists && votedfordeletion == 0 {
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, path)
+		io.WriteString(w, "https://"+path)
 	} else {
 		w.WriteHeader(http.StatusNoContent)
 	}
