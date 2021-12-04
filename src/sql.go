@@ -19,12 +19,14 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 var db *sql.DB
+var errnoEnt error = errors.New("no entries")
 
 func connectDb() {
 	var err error
@@ -262,7 +264,7 @@ func dbQueryReported(page int) ([]byte, error) {
 		Voted_by         string `json:"voted_by"`
 	}
 
-	var users []Entry
+	var entries []Entry
 
 	for rows.Next() {
 		var id, times_reported, tempVotedfordeletion int
@@ -276,10 +278,12 @@ func dbQueryReported(page int) ([]byte, error) {
 		} else {
 			votedfordeletion = true
 		}
-		users = append(users, Entry{id, domain, path, destination, times_reported, hashed_IP, votedfordeletion, voted_by})
+		entries = append(entries, Entry{id, domain, path, destination, times_reported, hashed_IP, votedfordeletion, voted_by})
 	}
-
-	entryBytes, _ := json.MarshalIndent(&users, "", "  ")
+	if len(entries) == 0 {
+		return nil, errnoEnt
+	}
+	entryBytes, _ := json.MarshalIndent(&entries, "", "  ")
 
 	return entryBytes, nil
 }

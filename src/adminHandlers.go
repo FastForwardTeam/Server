@@ -18,6 +18,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -152,14 +153,19 @@ func returnReported(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonData, err := dbQueryReported(p)
+	if errors.Is(err, errnoEnt) {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	if err != nil {
 		logger.Println(getRequestId(r) + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonData)
 }
 

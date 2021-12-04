@@ -15,7 +15,7 @@ function regenTokens() {
     }
     let r = localStorage.getItem('reftoken');
     fetch(domain+'admin/api/newacctoken', {
-    method: "post",
+    method: "POST",
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
@@ -49,26 +49,26 @@ function getReported() {
     let bearer = 'Bearer ' + sessionStorage.getItem('acctoken')
     let page='1'
     fetch(domain + 'admin/api/getreported?page=' + page, {
-        method: 'post',
+        method: 'POST',
         headers: {
             'Authorization': bearer,
             'Content-Type': 'application/x-www-form-url-encoded' 
         }
     })
-    .then (res => {
-        console.log(res.text)
-        if (res.headers.get('content-type') == 'text/plain; charset=utf-8') {
-            $('#table').text('No reported links so far')
-        }
-    })
-    .then(res => res.json())
+    .then(res => {
+      if (res.status == 204) {
+        $('#table').text('No reported links so far')
+    } else {
+    res.json()
     .then(data => {
-        data.forEach(function(obj) { 
-            obj.link = obj.domain + "/" + obj.path
-            delete obj.domain
-            delete obj.path
-        makeTable(data)
+      data.forEach(function(obj) { 
+          obj.link = obj.domain + "/" + obj.path
+          delete obj.domain
+          delete obj.path
+      })
+      makeTable(data)
      })
+    }
     })
     .catch(error => ({
         message: 'Something bad happened ' + error
@@ -115,7 +115,7 @@ function refreshTable() {
     let bearer = 'Bearer ' + sessionStorage.getItem('acctoken')
     let page='1'
     fetch(domain + 'admin/api/getreported?page=' + page, {
-        method: 'post',
+        method: 'POST',
         headers: {
             'Authorization': bearer,
             'Content-Type': 'application/x-www-form-url-encoded' 
@@ -142,18 +142,18 @@ function renderTable(data) {
 }
 
 function voteDelete(link) {
-domain=link.substr(0,link.indexOf('/')); 
+linkdomain=link.substr(0,link.indexOf('/')); 
 path=link.substr(link.indexOf('/')+1);
 let bearer = 'Bearer ' + sessionStorage.getItem('acctoken')
 fetch(domain + 'admin/api/votedelete', {
-method: "post",
+method: "POST",
 headers: {
     'Authorization': bearer,
     'Accept': 'application/json',
     'Content-Type': 'application/json'
 },
 body: JSON.stringify({
-  domain: domain,
+  domain: linkdomain,
   path: path
   })
 })
