@@ -27,7 +27,7 @@ import (
 
 func adminPanelRouters(h *http.ServeMux) {
 	fs := http.FileServer(http.Dir(panelDir))
-	h.Handle("/admin/", http.StripPrefix("/admin/", fs))
+	h.Handle("/admin/", fs)
 
 	// h.HandleFunc("/admin/api/signup", adminSignUp)
 	h.HandleFunc("/admin/api/changepassword", adminChangePassword)

@@ -48,5 +48,5 @@ func parseEnv() {
 	dbName = os.Getenv("dbName")
 	dbUser = os.Getenv("dbUser")
 	dbPassword = os.Getenv("dbPassword")
-	panelDir = "./static/admin/"
+	panelDir = "./static/"
 }

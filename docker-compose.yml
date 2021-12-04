@@ -60,6 +60,9 @@ services:
 
       - "traefik.http.routers.ffserver.rule=Host(`${domain}`) && (PathPrefix(`/admin`) || PathPrefix(`/crowd`))"
 
+      - "traefik.http.middlewares.cors-headers.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.routers.ffserver.middlewares=cors-headers"
+
       - "traefik.http.routers.ffserver.entrypoints=websecure"
       - "traefik.http.routers.ffserver.tls.certresolver=myresolver"
       - "traefik.port=5000"
