@@ -32,6 +32,9 @@ WORKDIR /root/
 
 COPY --from=builder /app/main .
 
+COPY --from=builder /app/src/static ./static/
+
+
 EXPOSE 5000
 
 #Command to run the executable

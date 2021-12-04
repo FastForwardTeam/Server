@@ -253,7 +253,7 @@ func dbQueryReported(page int) ([]byte, error) {
 	defer rows.Close()
 	type Entry struct {
 		Id               int    `json:"id"`
-		Domain           string `json:"domian"`
+		Domain           string `json:"domain"`
 		Path             string `json:"path"`
 		Destination      string `json:"destination"`
 		Times_reported   int    `json:"times_reported"`
