@@ -5,7 +5,7 @@ $('#login').attr('disabled',true);
 let u = $('#username').val()
 let p = $('#password').val()
 fetch(domain+'admin/api/newreftoken', {
-method: "post",
+method: "POST",
 headers: {
   'Accept': 'application/json',
   'Content-Type': 'application/json'
