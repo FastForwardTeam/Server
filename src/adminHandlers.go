@@ -100,7 +100,7 @@ func adminChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sanitize(&input.Username, &input.OldPassword, &input.NewPassword)
+	sanitize(&input.Username)
 
 	exists, hashedpassword := dbAdminCredsQuery(input.Username)
 	if !exists {
