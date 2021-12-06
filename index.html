@@ -1,0 +1,697 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>FastForward Server API Reference</title>
+
+    <style media="screen">
+      .highlight table td { padding: 5px; }
+.highlight table pre { margin: 0; }
+.highlight .gh {
+  color: #999999;
+}
+.highlight .sr {
+  color: #f6aa11;
+}
+.highlight .go {
+  color: #888888;
+}
+.highlight .gp {
+  color: #555555;
+}
+.highlight .gs {
+}
+.highlight .gu {
+  color: #aaaaaa;
+}
+.highlight .nb {
+  color: #f6aa11;
+}
+.highlight .cm {
+  color: #75715e;
+}
+.highlight .cp {
+  color: #75715e;
+}
+.highlight .c1 {
+  color: #75715e;
+}
+.highlight .cs {
+  color: #75715e;
+}
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cpf {
+  color: #75715e;
+}
+.highlight .err {
+  color: #960050;
+}
+.highlight .gr {
+  color: #960050;
+}
+.highlight .gt {
+  color: #960050;
+}
+.highlight .gd {
+  color: #49483e;
+}
+.highlight .gi {
+  color: #49483e;
+}
+.highlight .ge {
+  color: #49483e;
+}
+.highlight .kc {
+  color: #66d9ef;
+}
+.highlight .kd {
+  color: #66d9ef;
+}
+.highlight .kr {
+  color: #66d9ef;
+}
+.highlight .no {
+  color: #66d9ef;
+}
+.highlight .kt {
+  color: #66d9ef;
+}
+.highlight .mf {
+  color: #ae81ff;
+}
+.highlight .mh {
+  color: #ae81ff;
+}
+.highlight .il {
+  color: #ae81ff;
+}
+.highlight .mi {
+  color: #ae81ff;
+}
+.highlight .mo {
+  color: #ae81ff;
+}
+.highlight .m, .highlight .mb, .highlight .mx {
+  color: #ae81ff;
+}
+.highlight .sc {
+  color: #ae81ff;
+}
+.highlight .se {
+  color: #ae81ff;
+}
+.highlight .ss {
+  color: #ae81ff;
+}
+.highlight .sd {
+  color: #e6db74;
+}
+.highlight .s2 {
+  color: #e6db74;
+}
+.highlight .sb {
+  color: #e6db74;
+}
+.highlight .sh {
+  color: #e6db74;
+}
+.highlight .si {
+  color: #e6db74;
+}
+.highlight .sx {
+  color: #e6db74;
+}
+.highlight .s1 {
+  color: #e6db74;
+}
+.highlight .s, .highlight .sa, .highlight .dl {
+  color: #e6db74;
+}
+.highlight .na {
+  color: #a6e22e;
+}
+.highlight .nc {
+  color: #a6e22e;
+}
+.highlight .nd {
+  color: #a6e22e;
+}
+.highlight .ne {
+  color: #a6e22e;
+}
+.highlight .nf, .highlight .fm {
+  color: #a6e22e;
+}
+.highlight .vc {
+  color: #ffffff;
+}
+.highlight .nn {
+  color: #ffffff;
+}
+.highlight .ni {
+  color: #ffffff;
+}
+.highlight .bp {
+  color: #ffffff;
+}
+.highlight .vg {
+  color: #ffffff;
+}
+.highlight .vi {
+  color: #ffffff;
+}
+.highlight .nv, .highlight .vm {
+  color: #ffffff;
+}
+.highlight .w {
+  color: #ffffff;
+}
+.highlight {
+  color: #ffffff;
+}
+.highlight .n, .highlight .py, .highlight .nx {
+  color: #ffffff;
+}
+.highlight .nl {
+  color: #f92672;
+}
+.highlight .ow {
+  color: #f92672;
+}
+.highlight .nt {
+  color: #f92672;
+}
+.highlight .k, .highlight .kv {
+  color: #f92672;
+}
+.highlight .kn {
+  color: #f92672;
+}
+.highlight .kp {
+  color: #f92672;
+}
+.highlight .o {
+  color: #f92672;
+}
+    </style>
+    <style media="print">
+      * {
+        -webkit-transition:none!important;
+        transition:none!important;
+      }
+      .highlight table td { padding: 5px; }
+.highlight table pre { margin: 0; }
+.highlight, .highlight .w {
+  color: #586e75;
+}
+.highlight .err {
+  color: #002b36;
+  background-color: #dc322f;
+}
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cm, .highlight .cpf, .highlight .c1, .highlight .cs {
+  color: #657b83;
+}
+.highlight .cp {
+  color: #b58900;
+}
+.highlight .nt {
+  color: #b58900;
+}
+.highlight .o, .highlight .ow {
+  color: #93a1a1;
+}
+.highlight .p, .highlight .pi {
+  color: #93a1a1;
+}
+.highlight .gi {
+  color: #859900;
+}
+.highlight .gd {
+  color: #dc322f;
+}
+.highlight .gh {
+  color: #268bd2;
+  background-color: #002b36;
+  font-weight: bold;
+}
+.highlight .k, .highlight .kn, .highlight .kp, .highlight .kr, .highlight .kv {
+  color: #6c71c4;
+}
+.highlight .kc {
+  color: #cb4b16;
+}
+.highlight .kt {
+  color: #cb4b16;
+}
+.highlight .kd {
+  color: #cb4b16;
+}
+.highlight .s, .highlight .sb, .highlight .sc, .highlight .dl, .highlight .sd, .highlight .s2, .highlight .sh, .highlight .sx, .highlight .s1 {
+  color: #859900;
+}
+.highlight .sa {
+  color: #6c71c4;
+}
+.highlight .sr {
+  color: #2aa198;
+}
+.highlight .si {
+  color: #d33682;
+}
+.highlight .se {
+  color: #d33682;
+}
+.highlight .nn {
+  color: #b58900;
+}
+.highlight .nc {
+  color: #b58900;
+}
+.highlight .no {
+  color: #b58900;
+}
+.highlight .na {
+  color: #268bd2;
+}
+.highlight .m, .highlight .mb, .highlight .mf, .highlight .mh, .highlight .mi, .highlight .il, .highlight .mo, .highlight .mx {
+  color: #859900;
+}
+.highlight .ss {
+  color: #859900;
+}
+    </style>
+    <link href="stylesheets/screen-c9d8fa83.css" rel="stylesheet" media="screen" />
+    <link href="stylesheets/print-953e3353.css" rel="stylesheet" media="print" />
+      <script src="javascripts/all-b12a2749.js"></script>
+
+  </head>
+
+  <body class="index" data-languages="[&quot;Examples&quot;]">
+    <a href="#" id="nav-button">
+      <span>
+        NAV
+        <img src="images/navbar-cad8cdcb.png" alt="" />
+      </span>
+    </a>
+    <div class="toc-wrapper">
+      <img src="images/logo.png" class="logo" alt="" />
+        <div class="lang-selector">
+              <a href="#" data-language-name="Examples">Examples</a>
+        </div>
+        <div class="search">
+          <input type="text" class="search" id="input-search" placeholder="Search">
+        </div>
+        <ul class="search-results"></ul>
+      <ul id="toc" class="toc-list-h1">
+          <li>
+            <a href="#introduction" class="toc-h1 toc-link" data-title="Introduction">Introduction</a>
+          </li>
+          <li>
+            <a href="#crowd-query" class="toc-h1 toc-link" data-title="Crowd Query">Crowd Query</a>
+          </li>
+          <li>
+            <a href="#crowd-contribute" class="toc-h1 toc-link" data-title="Crowd Contribute">Crowd Contribute</a>
+              <ul class="toc-list-h2">
+                  <li>
+                    <a href="#verifying-targets" class="toc-h2 toc-link" data-title="Verifying targets">Verifying targets</a>
+                  </li>
+              </ul>
+          </li>
+          <li>
+            <a href="#admin-endpoint" class="toc-h1 toc-link" data-title="Admin endpoint">Admin endpoint</a>
+              <ul class="toc-list-h2">
+                  <li>
+                    <a href="#sign-up" class="toc-h2 toc-link" data-title="Sign up">Sign up</a>
+                  </li>
+                  <li>
+                    <a href="#change-password" class="toc-h2 toc-link" data-title="Change password">Change password</a>
+                  </li>
+                  <li>
+                    <a href="#getting-refresh-tokens" class="toc-h2 toc-link" data-title="Getting refresh tokens">Getting refresh tokens</a>
+                  </li>
+                  <li>
+                    <a href="#getting-access-tokens" class="toc-h2 toc-link" data-title="Getting access tokens">Getting access tokens</a>
+                  </li>
+                  <li>
+                    <a href="#getting-reported-links" class="toc-h2 toc-link" data-title="Getting reported links">Getting reported links</a>
+                  </li>
+                  <li>
+                    <a href="#vote-for-deletion" class="toc-h2 toc-link" data-title="Vote for deletion">Vote for deletion</a>
+                  </li>
+              </ul>
+          </li>
+          <li>
+            <a href="#errors" class="toc-h1 toc-link" data-title="Errors">Errors</a>
+          </li>
+      </ul>
+        <ul class="toc-footer">
+            <li><a href='https://github.com/slatedocs/slate'>Documentation Powered by Slate</a></li>
+        </ul>
+    </div>
+    <div class="page-wrapper">
+      <div class="dark-box"></div>
+      <div class="content">
+        <h1 id='introduction'>Introduction</h1>
+<p>Version 1.0.0</p>
+
+<p>Welcome to the FastForward Server API docs! It is recommended to use <a href="https://hoppscotch.io">Hoppscotch</a> or <a href="https://insomnia.rest/download">Insomnia</a> to get familiar with the api before developing.</p>
+<h1 id='crowd-query'>Crowd Query</h1>
+<blockquote>
+<p>Query for &quot;https://shortlinksite.example/9njv3&quot;</p>
+</blockquote>
+<div class="highlight"><pre class="highlight plaintext"><code>domain=shortlinksite.example&amp;path=9njv3
+</code></pre></div>
+<blockquote>
+<p>will return text/plain response</p>
+</blockquote>
+<div class="highlight"><pre class="highlight plaintext"><code>asitenotrelatedtopiracy.example
+</code></pre></div>
+<p>For Crowd Query send a <strong><code>application/x-www-form-urlencoded</code> POST</strong> request with the domain and path to <strong><code>crowd.fastforward.team/crowd/query_v1</code></strong></p>
+
+<aside class="notice">
+Note how the protocol(https://) and the first "/" are not included in the form
+</aside>
+
+<p>Response status codes</p>
+
+<table><thead>
+<tr>
+<th>Staus Code</th>
+<th>Response</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>200</td>
+<td>text/plain</td>
+<td>The link was found in the db and returned</td>
+</tr>
+<tr>
+<td>204</td>
+<td>empty</td>
+<td>Not found in db</td>
+</tr>
+</tbody></table>
+
+<p>There is a 10% chance that the server will return 201 even if the link was found, forcing the user to go through the site and verify the target.</p>
+<h1 id='crowd-contribute'>Crowd Contribute</h1>
+<blockquote>
+<p>Contribute destination &quot;https://asitenotrelatedtopiracy.example&quot; for &quot;https://shortlinksite.example/9njv3&quot;</p>
+</blockquote>
+<div class="highlight"><pre class="highlight plaintext"><code>POST crowd.fastforward.team/crowd/query_v1
+
+domain=shortlinksite.example&amp;path=9njv3&amp;target=asitenotrelatedtopiracy.example
+</code></pre></div>
+<blockquote>
+<p>Will return:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight plaintext"><code>201 Created
+</code></pre></div>
+<p>For Crowd Contribute send a <strong><code>application/x-www-form-urlencoded</code> POST</strong> request with the domain, path and target to <strong><code>crowd.fastforward.team/crowd/contribute_v1</code></strong></p>
+<h3 id='verifying-targets'>Verifying targets</h3>
+<p>If the domain and path sent in a crowd contribute request already exist in the db and:
+- the target matches the one in the db, nothing happens and status 201 is returned
+- the target does not match the one in the db, the entry gets <code>reported</code> and status 201 is returned</p>
+<h1 id='admin-endpoint'>Admin endpoint</h1><h2 id='sign-up'>Sign up</h2>
+<p>To create an admin account access the server database and add a row in the <code>admin_creds</code> table with the username and <a href="https://gchq.github.io/CyberChef/#recipe=Bcrypt(10)">password(hashed with bcrypt cost 10)</a></p>
+<div class="highlight"><pre class="highlight plaintext"><code>INSERT INTO admin_creds (username, password) VALUES ('thebestadmin', '$2a$10$Vae9jdPSR.teZHW5qh0HCebhzVUhH7vWdfSAQd8kdHO/iGPzY8WJS')
+</code></pre></div><h2 id='change-password'>Change password</h2>
+<blockquote>
+<p>Request:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="err">POST</span><span class="w"> </span><span class="err">crowd.fastforward.team/admin/api/changepassword</span><span class="w">
+
+</span><span class="p">{</span><span class="w">
+    </span><span class="nl">"username"</span><span class="p">:</span><span class="w"> </span><span class="s2">"thebestadmin"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"oldpassword"</span><span class="p">:</span><span class="w"> </span><span class="s2">"agoodpassword"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"newpassword"</span><span class="p">:</span><span class="w"> </span><span class="s2">"areallygoodpassword"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<blockquote>
+<p>will return</p>
+</blockquote>
+<div class="highlight"><pre class="highlight plaintext"><code>200 OK
+</code></pre></div>
+<p>To change your password send a <strong><code>JSON</code> POST</strong> request with the username, oldpassword and newpassword keys to 
+<strong><code>crowd.fastforward.team/admin/api/changepassword</code></strong></p>
+
+<p>Response status codes</p>
+
+<table><thead>
+<tr>
+<th>Staus Code</th>
+<th>Response</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>200</td>
+<td>empty</td>
+<td>Password was successfully updated</td>
+</tr>
+<tr>
+<td>401</td>
+<td>empty</td>
+<td>username not found or old password did not match</td>
+</tr>
+</tbody></table>
+
+<aside class="notice">Changing a user's password will resest their refresh token</aside>
+<h2 id='getting-refresh-tokens'>Getting refresh tokens</h2>
+<blockquote>
+<p>Getting a refresh token for thebestadmin</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="err">POST</span><span class="w"> </span><span class="err">crowd.fastforward.team/admin/api/newreftoken`</span><span class="w">
+</span><span class="p">{</span><span class="w">
+    </span><span class="nl">"username"</span><span class="p">:</span><span class="w"> </span><span class="s2">"thebestadmin"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"password"</span><span class="p">:</span><span class="w"> </span><span class="s2">"areallygoodpassword"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<blockquote>
+<p>Response</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"reftoken"</span><span class="p">:</span><span class="w"> </span><span class="s2">"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ0aGViZXN0YWRtaW4iLCJleHAiOjEwMDMwOTA0OTksImp0aSI6ImQzZjY4ODZkLTcwNmUtNGFhMC05MTZiLWM5ODVjODZhNWFkOSIsInN1YiI6InJlZl90b2tlbiJ9.vSpqFOeHTi7F4rIC9l-D-vxicZOetHvUqa1xJtQMn2OGhz_HlLuIuhsg4rYspAVrhYU-xTlcequW35VjdzR0gKO8OIaGA3CVpCg6PlYqRMXOakbVIdES35xMIGHgHp-_XVGXyZ34htkI5yAp6MI3p1E6oCD-wRdvxq9eRT0u9PjvF1CBw9YsWkUlR_5VS-AyeF8asvEqzwiq9ZRljYKbyEzbqJn-vcb1S7SU4PqSpKgxL9DriL2oC0QqO3N56Lx8gLXszbiSngveBlREzM5XczF8Ii6ap8JjfRwLjXVGmap2fgYzuJEoExIV7G7dIJkU83j3XVt7DEzus5eA6mIMEA"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span></code></pre></div>
+<p>To reduce the amount of database lookups the server uses refresh and access tokens. An access token is valid for only 15 minutes and is verified quickly, without a db lookup. However, to generate an access token a refresh token needs to be verified which does need a db lookup. This way only one lookup every 15 minutes is needed for each user.</p>
+
+<aside class="warning">Only one refresh token per user can be generated, if a new one is generated the old one becomes invalid</aside>
+
+<p>To change your password send a <strong><code>JSON</code> POST</strong> request with the username and password keys to 
+<strong><code>crowd.fastforward.team/admin/api/newreftoken</code></strong>
+The server will send a JSON response with a reftoken key</p>
+
+<table><thead>
+<tr>
+<th>Staus Code</th>
+<th>Response</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>200</td>
+<td>application/json</td>
+<td>success</td>
+</tr>
+<tr>
+<td>401</td>
+<td>empty</td>
+<td>username not found or password did not match</td>
+</tr>
+</tbody></table>
+<h2 id='getting-access-tokens'>Getting access tokens</h2>
+<blockquote>
+<p>Generating an access token</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="err">POST</span><span class="w"> </span><span class="err">crowd.fastforward.team/admin/api/newacctoken</span><span class="w">
+
+</span><span class="p">{</span><span class="w">
+  </span><span class="nl">"reftoken"</span><span class="p">:</span><span class="w"> </span><span class="s2">"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ0aGViZXN0YWRtaW4iLCJleHAiOjEwMDMwOTA0OTksImp0aSI6ImQzZjY4ODZkLTcwNmUtNGFhMC05MTZiLWM5ODVjODZhNWFkOSIsInN1YiI6InJlZl90b2tlbiJ9.vSpqFOeHTi7F4rIC9l-D-vxicZOetHvUqa1xJtQMn2OGhz_HlLuIuhsg4rYspAVrhYU-xTlcequW35VjdzR0gKO8OIaGA3CVpCg6PlYqRMXOakbVIdES35xMIGHgHp-_XVGXyZ34htkI5yAp6MI3p1E6oCD-wRdvxq9eRT0u9PjvF1CBw9YsWkUlR_5VS-AyeF8asvEqzwiq9ZRljYKbyEzbqJn-vcb1S7SU4PqSpKgxL9DriL2oC0QqO3N56Lx8gLXszbiSngveBlREzM5XczF8Ii6ap8JjfRwLjXVGmap2fgYzuJEoExIV7G7dIJkU83j3XVt7DEzus5eA6mIMEA"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<blockquote>
+<p>Will return:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"acctoken"</span><span class="p">:</span><span class="w"> </span><span class="s2">"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ0aGViZXN0YWRtaW4iLCJleHAiOjEwMDc5MDg0MTAsInN1YiI6ImFjY190b2tlbiJ9.X5R3VjrxEAxCNp_wLnQwRrFdq6UszPV-B-IDlVrYOzreSgpi65Hmyzh-J7kBx2RRz0NL2WZFiOv8vkQvNAjZQlstogIhoNvFbK8a8FshkimFf-sUYybh7hTzl3JvCAqwoIQ0Bom_TVHUlw988UCEZJxZZVLXcUWM_L9507g12kH9HGAfcsRvjGKpiMhUfystWoxFhLLvutkZBvWoaQ9NxNr0I8_AS5pyBPAi5h6H0RZMhn3zcULEJkOJ1suwjBnnf8MReOGHGmqKLlYadwxjy6iei98fL5l1n2kQkpQreBVyofRrPsWgYwnCRcmiynqLWJ4FzDKb2ksCMQ_eiQCexw"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<aside class="notice">Access tokens are valid for only 15 minute remember to generate and use new ones often</aside>
+
+<p>To change your password send a <strong><code>JSON</code> POST</strong> request with a reftoken key to 
+<strong><code>crowd.fastforward.team/admin/api/newacctoken</code></strong>
+The server will send a JSON response with an acctoken key</p>
+
+<table><thead>
+<tr>
+<th>Staus Code</th>
+<th>Response</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>200</td>
+<td>application/json</td>
+<td>success</td>
+</tr>
+<tr>
+<td>401</td>
+<td>empty</td>
+<td>invalid reftoken</td>
+</tr>
+</tbody></table>
+<h2 id='getting-reported-links'>Getting reported links</h2>
+<blockquote>
+<p>Request</p>
+</blockquote>
+<div class="highlight"><pre class="highlight plaintext"><code>&gt; POST /admin/api/getreported
+
+&gt; Content-Type: application/x-www-form-urlencoded
+
+&gt; Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ0aGViZXN0YWRtaW4iLCJleHAiOjE2Mzc5MDk2NjUsInN1YiI6ImFjY190b2tlbiJ9.m2PZ8Lv6KckQEC6lw3g655BgY0z1XcaeqxxGnfuP0YE-h7aU6YUbFyOAjPZedxLLhNzAcDZp806lFBAAiDGiEz79Jz_YYrISDSlb7YiwHSbarSvMZLnBOMkxbcsVAoA45Pqn0u_uHRhyeTr8d7r5dlMASZv8AUnEa_UkjfArOwRrv_hb0boC_AlLP5mL3NyGfHbVAPza7Jc9jyxCf46uvoSsR5X6zi17ROOFYytkfzUeyk6HiJ_nQ6wCfWqbDkh1cdTqsKPcCWB141UtmoNPAfqxhT-zK-MLkGGKFLQJIP0_xMYTVwB-Mya3tIFmm-CQsyPFGsy6H5LGRAsXOcRYew
+
+| page=1
+
+</code></pre></div>
+<blockquote>
+<p>Response</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">[</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"domian"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shortlinksite.example"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9njv3"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destination"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fishylink.example"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"times_reported"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"hashed_IP"</span><span class="p">:</span><span class="w"> </span><span class="s2">"64ced7e32efb08f35afccadca888750d23263a5850e62cc8846052bc93ceef7c"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"votedfordeletion"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"voted_by"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"domian"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shortlinksite.example"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9mj58"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destination"</span><span class="p">:</span><span class="w"> </span><span class="s2">"suslink.example"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"times_reported"</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"hashed_IP"</span><span class="p">:</span><span class="w"> </span><span class="s2">"61be55a8e2f6b4e172338bddf184d6dbee29c98853e0a0485ecee7f27b9af0b4"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"votedfordeletion"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"voted_by"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"domian"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shortlinksite.example"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"a8dyu123"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destination"</span><span class="p">:</span><span class="w"> </span><span class="s2">"imposterlink.example"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"times_reported"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"hashed_IP"</span><span class="p">:</span><span class="w"> </span><span class="s2">"f9cf2e767495e184a9d07523a3cd9f18faf1b4975ed632f9072009a03e1774e8"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"votedfordeletion"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"voted_by"</span><span class="p">:</span><span class="w"> </span><span class="s2">"thebetteradmin"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">]</span><span class="w">
+</span></code></pre></div>
+<p>To get reported links send a <strong><code>form-urlencoded</code> POST</strong> request with a page parameter and access token as bearer token in the Authorization header to 
+<strong><code>crowd.fastforward.team/admin/api/getreported</code></strong></p>
+
+<p>This will return up to 20 entries at once. Use the page argument to get another set of 20 entries.</p>
+
+<table><thead>
+<tr>
+<th>Staus Code</th>
+<th>Response</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>200</td>
+<td>application/json</td>
+<td>success</td>
+</tr>
+<tr>
+<td>401</td>
+<td>empty</td>
+<td>bearer token in auth header is invalid</td>
+</tr>
+</tbody></table>
+<h2 id='vote-for-deletion'>Vote for deletion</h2>
+<blockquote>
+<p>Request</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"domain"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shortlinksite.example"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"a8dyu123"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<blockquote>
+<p>Response</p>
+</blockquote>
+<div class="highlight"><pre class="highlight go tab-go"><code><span class="n">empty</span>
+
+</code></pre></div>
+<p>Admins can vote to delete an entry. It takes 2 votes to delete an entry. <em>The server does not prevent an admin from voting twice.</em> For now, only the the first voter is stored in the db (Both voters do show up in logs, though).</p>
+
+<p>To vote send a <strong><code>JSON</code> POST</strong> request with keys for the domain and path with the access token as bearer token in the Authorization header to
+<strong><code>crowd.fastforward.team/api/votedelete</code></strong></p>
+
+<table><thead>
+<tr>
+<th>Staus Code</th>
+<th>Response</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>200</td>
+<td>empty</td>
+<td>Successfully voted (The entry now has a total of <code>1</code> vote)</td>
+</tr>
+<tr>
+<td>202</td>
+<td>empty</td>
+<td>Successfully deleted, the entry already had one vote</td>
+</tr>
+<tr>
+<td>422</td>
+<td>empty</td>
+<td>domain and path not found</td>
+</tr>
+</tbody></table>
+<h1 id='errors'>Errors</h1>
+<p>The FastForward Server API uses the following error codes on all endpoints:</p>
+
+<table><thead>
+<tr>
+<th>Error Code</th>
+<th>Meaning</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>400</td>
+<td>Bad Request -- Your request is invalid.</td>
+</tr>
+<tr>
+<td>404</td>
+<td>Not Found -- The specified endpoint could not be found.</td>
+</tr>
+<tr>
+<td>500</td>
+<td>Internal Server Error -- We had a problem with our server. Inform the admins and check the server logs.</td>
+</tr>
+<tr>
+<td>503</td>
+<td>Service Unavailable -- We&#39;re temporarily offline for maintenance. Please try again later.</td>
+</tr>
+</tbody></table>
+
+      </div>
+      <div class="dark-box">
+          <div class="lang-selector">
+                <a href="#" data-language-name="Examples">Examples</a>
+          </div>
+      </div>
+    </div>
+  </body>
+</html>
