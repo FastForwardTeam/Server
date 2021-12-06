@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -37,6 +38,9 @@ func connectDb() {
 	if err != nil {
 		logger.Fatalln(err)
 	}
+	db.SetConnMaxLifetime(time.Minute * 3)
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
 }
 
 // returns (if exists), (destination if exists), (votedfordeletion 0/1)

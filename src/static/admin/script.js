@@ -57,6 +57,7 @@ function getReported() {
     })
     .then(res => {
       if (res.status == 204) {
+        $('#status').text('')
         $('#table').text('No reported links so far')
     } else {
     res.json()
@@ -66,6 +67,7 @@ function getReported() {
           delete obj.domain
           delete obj.path
       })
+      $('#status').text('')
       makeTable(data)
      })
     }
@@ -74,11 +76,47 @@ function getReported() {
         message: 'Something bad happened ' + error
     }))
 }
-regenTokens()
 setInterval(function(){
     regenTokens()
     }, 870000);
-getReported()
+    if (localStorage.getItem('reftoken') === null) {
+      window.location.replace("login");
+  }
+
+$('#status').text('Loading...')
+
+// If you're seeing this, I am sorry
+fetch(domain+'admin/api/newacctoken', {
+  method: "POST",
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    reftoken: localStorage.getItem('reftoken')
+     })
+  })
+    .then(res => res.json())
+    .then(data => {
+      sessionStorage.setItem('acctoken', data.acctoken);
+      sessionStorage.setItem('username', parseJwt(data.acctoken).aud);
+      $('#username-span').text(sessionStorage.getItem('username'));
+      getReported()
+    })
+    .catch(error => {
+      Swal.fire({
+        toast: true,
+        position: 'top',
+        showConfirmButton: false,
+        title: 'Failed to verify login details',
+        icon: 'error',
+        timer: 2000,
+        timerProgressBar: true,
+        didDestroy: () => {
+          window.location.replace("login");
+      }
+      })
+    })
 var linkTable
 function makeTable(data) {
     linkTable = new gridjs.Grid({

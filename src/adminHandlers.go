@@ -245,7 +245,7 @@ func refTokenHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	sanitize(&input.Username, &input.Password)
+	sanitize(&input.Username)
 
 	exists, hashedpassword := dbAdminCredsQuery(input.Username)
 
@@ -330,9 +330,9 @@ func parseAuthHeader(r *http.Request) (username string, ok bool) {
 		return "", false
 	}
 	reqToken = splitToken[1]
-	username, err := pasreAccessToken(reqToken)
+	username, err := parseAccessToken(reqToken)
 	if err != nil {
-		logger.Println(getRequestId(r) + " failed to authenticate [invalid access token in header] ")
+		logger.Println(getRequestId(r) + " failed to authenticate [invalid access token in header] Error: " + err.Error())
 		return "", false
 	}
 	logger.Println(getRequestId(r) + " authenticated as \"" + username + "\" using an access token")

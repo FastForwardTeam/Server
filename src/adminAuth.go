@@ -39,7 +39,7 @@ func loadRSAKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 
 	block, _ := pem.Decode([]byte(privPEM))
 	if block == nil {
-		return nil, nil, errors.New("failed to env var containing the private key")
+		return nil, nil, errors.New("failed to parse env var containing the private key")
 	}
 
 	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
@@ -94,6 +94,10 @@ func genAccessToken(refToken string) (username string, accToken string, err erro
 		return RSApublicKey, nil
 	})
 
+	if err != nil {
+		return "", "", err
+	}
+
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		if claims["sub"].(string) != "ref_token" {
 			return claims["aud"].(string), "", errors.New("not refresh token")
@@ -130,13 +134,17 @@ func genAccessToken(refToken string) (username string, accToken string, err erro
 }
 
 // Takes Access token, verifies and parses it, returns username and error
-func pasreAccessToken(accToken string) (username string, err error) {
+func parseAccessToken(accToken string) (username string, err error) {
 	token, err := jwt.Parse(accToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, errors.New("Unexpected signing method:" + token.Header["alg"].(string))
 		}
 		return RSApublicKey, nil
 	})
+
+	if err != nil {
+		return "", err
+	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		if claims["sub"].(string) != "acc_token" {
