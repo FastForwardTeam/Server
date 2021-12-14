@@ -216,6 +216,16 @@ body: JSON.stringify({
             timer: 2000,
           })
         refreshTable()
+    } else if (res.status == 409) {
+      swal.fire({
+        toast: true,
+        position: 'top',
+        showConfirmButton: false,
+        title: 'You already voted to delete that link',
+        icon: 'error',
+        timer: 2000,
+        timerProgressBar: true,
+      })
     } else {
       Swal.fire({
         toast: true,

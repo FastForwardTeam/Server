@@ -195,23 +195,27 @@ func voteDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exists, _, votedfordeletion := dbQuery(input.Domain, input.Path)
+	exists, votedfordeletion, votedBy := dbAdminVoteQuery(input.Domain, input.Path)
 
 	if !exists {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		logger.Println(getRequestId(r), "domain and path not found")
+		logger.Println(getRequestId(r), " domain and path not found")
 		return
 	}
 
 	if votedfordeletion != 0 {
-		logger.Println(votedfordeletion)
+		if votedBy == username {
+			w.WriteHeader(http.StatusConflict)
+			logger.Println(getRequestId(r), " user already voted for deletion")
+			return
+		}
 		err = dbAdminSoftDelete(input.Domain, input.Path)
 		if err != nil {
 			logger.Println(getRequestId(r) + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		logger.Println(getRequestId(r) + " deleted" + input.Domain + input.Path)
+		logger.Println(getRequestId(r) + " deleted " + input.Domain + input.Path)
 		w.WriteHeader(http.StatusAccepted)
 		return
 	}

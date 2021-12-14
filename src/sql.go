@@ -59,9 +59,30 @@ func dbQuery(domain string, path string) (bool, string, int) {
 		return true, dest, votedfordeletion
 	default:
 		logger.Fatalln(err)
-		return false, "", 0 //Fatalln stops the program, return is unnecessary
+		return false, "", 0 //Fatalln stops the program, return is unnecessary but gopls won't shut up
 	}
 
+}
+
+func dbAdminVoteQuery(domain string, path string) (exists bool, votedfordeletion int, votedBy string) {
+	stmt, err := db.Prepare("SELECT votedfordeletion, voted_by FROM links WHERE domain = ? AND path = ?")
+	if err != nil {
+		logger.Fatalln(err)
+	}
+	defer stmt.Close()
+	var voted_by_safe sql.NullString //Allows null values
+	switch err = stmt.QueryRow(domain, path).Scan(&votedfordeletion, &voted_by_safe); err {
+	case sql.ErrNoRows:
+		return false, 0, ""
+	case nil:
+		if voted_by_safe.Valid {
+			return true, votedfordeletion, voted_by_safe.String //If the value is valid(not null), return it
+		}
+		return true, votedfordeletion, "" //otherwise return empty string
+	default:
+		logger.Fatalln(err)
+		return false, 0, ""
+	}
 }
 
 func dbInsert(domain string, path string, target string, hashedIP string) {
@@ -244,6 +265,7 @@ func dbAdminRefTokenQuery(username string) (bool, string) {
 
 }
 
+// Return reported links as json array with id, domain, path, destination, times_reported, hashed_ip, votedfordeletion, voted_by
 func dbQueryReported(page int) ([]byte, error) {
 
 	stmt, err := db.Prepare("SELECT * FROM links WHERE times_reported > 0 LIMIT ? OFFSET ?")
