@@ -1,5 +1,5 @@
 /*
-Copyright 2021 NotAProton
+Copyright 2021, 2022 NotAProton
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,93 +26,91 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var db *sql.DB
-var errnoEnt error = errors.New("no entries")
+var (
+	db       *sql.DB
+	errnoEnt error = errors.New("no entries")
+)
 
-func connectDb() {
+func connectDb() error {
 	var err error
 
 	creds := fmt.Sprintf("%s:%s@tcp(db:3306)/%s", dbUser, dbPassword, dbName)
 
 	db, err = sql.Open("mysql", creds)
 	if err != nil {
-		logger.Fatalln(err)
+		return err
 	}
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
+	return nil
 }
 
-// returns (if exists), (destination if exists), (votedfordeletion 0/1)
-func dbQuery(domain string, path string) (bool, string, int) {
+// returns (error, if exists, destination if exists, votedfordeletion 0/1)
+func dbQuery(domain string, path string) (bool, string, int, error) {
 	stmt, err := db.Prepare("SELECT destination, votedfordeletion FROM links WHERE domain = ? AND path = ?")
 	if err != nil {
-		logger.Fatalln(err)
+		return false, "", 0, err
 	}
 	defer stmt.Close()
 	var dest string
 	var votedfordeletion int
 	switch err = stmt.QueryRow(domain, path).Scan(&dest, &votedfordeletion); err {
 	case sql.ErrNoRows:
-		return false, "", 0
+		return false, "", 0, nil
 	case nil:
-		return true, dest, votedfordeletion
+		return true, dest, votedfordeletion, nil
 	default:
-		logger.Fatalln(err)
-		return false, "", 0 //Fatalln stops the program, return is unnecessary but gopls won't shut up
+		return false, "", 0, err
 	}
 
 }
 
-func dbAdminVoteQuery(domain string, path string) (exists bool, votedfordeletion int, votedBy string) {
+func dbAdminVoteQuery(domain string, path string) (votedfordeletion int, votedBy string, err error) {
 	stmt, err := db.Prepare("SELECT votedfordeletion, voted_by FROM links WHERE domain = ? AND path = ?")
 	if err != nil {
-		logger.Fatalln(err)
+		return 0, "", err
 	}
 	defer stmt.Close()
 	var voted_by_safe sql.NullString //Allows null values
 	switch err = stmt.QueryRow(domain, path).Scan(&votedfordeletion, &voted_by_safe); err {
 	case sql.ErrNoRows:
-		return false, 0, ""
+		return 0, "", errnoEnt
 	case nil:
 		if voted_by_safe.Valid {
-			return true, votedfordeletion, voted_by_safe.String //If the value is valid(not null), return it
+			return votedfordeletion, voted_by_safe.String, nil //If the value is valid(not null), return it
 		}
-		return true, votedfordeletion, "" //otherwise return empty string
+		return votedfordeletion, "", nil //otherwise return empty string
 	default:
-		logger.Fatalln(err)
-		return false, 0, ""
+		return 0, "", err
 	}
 }
 
-func dbInsert(domain string, path string, target string, hashedIP string) {
+func dbInsert(domain string, path string, target string, hashedIP string) error {
 
 	stmt, err := db.Prepare("INSERT INTO links (domain, path, destination, hashed_IP) VALUES (?, ?, ?, ?)")
 	if err != nil {
-		logger.Fatal(err)
+		return err
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec(domain, path, target, hashedIP)
 
-	if err != nil {
-		logger.Fatalln(err)
-	}
+	return err
+
 }
 
-//Increases times_reported 1
-func dbReport(domain string, path string) {
+//Increases times_reported by 1
+func dbReport(domain string, path string) error {
 
 	stmt, err := db.Prepare("UPDATE links SET times_reported = times_reported + 1 WHERE domain = ? AND path = ?")
 	if err != nil {
-		logger.Fatalln(err)
+		return err
 	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(domain, path)
 
-	if err != nil {
-		logger.Fatalln(err)
-	}
+	return err
 }
 
 // Admin stuff
@@ -159,93 +157,84 @@ func dbAdminSoftDelete(domain string, path string) error {
 	return tx.Commit()
 }
 
-func dbAdminVoteDelete(username string, domain string, path string) {
+func dbAdminVoteDelete(username string, domain string, path string) error {
 
 	stmt, err := db.Prepare("UPDATE links SET votedfordeletion = 1, voted_by = ? WHERE domain = ? AND path = ?")
 	if err != nil {
-		logger.Fatalln(err)
+		return err
 	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(username, domain, path)
 
-	if err != nil {
-		logger.Fatalln(err)
-	}
+	return err
 }
 
 /*
-func dbAdminCredsInsert(username string, password string) {
+func dbAdminCredsInsert(username string, password string) error {
 
 	stmt, err := db.Prepare("INSERT INTO admin_creds (username, password) VALUES (?, ?)")
 	if err != nil {
-		logger.Fatalln(err)
+		return err
 	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(username, password)
 
-	if err != nil {
-		logger.Fatalln(err)
-	}
+	return err
 
 }
 */
 
-func dbAdminPasswordChange(username string, newPassword string) {
+func dbAdminPasswordChange(username string, newPassword string) error {
 
 	stmt, err := db.Prepare("UPDATE admin_creds SET password = ? WHERE username = ?")
 	if err != nil {
-		logger.Fatalln(err)
+		return err
 	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(newPassword, username)
 
-	if err != nil {
-		logger.Fatalln(err)
-	}
+	return err
 }
 
-func dbAdminRefTokenInsert(username string, uuid string) {
+func dbAdminRefTokenInsert(username string, uuid string) error {
 
 	stmt, err := db.Prepare("UPDATE admin_creds SET token_id = ? WHERE username = ?;")
 	if err != nil {
-		logger.Fatalln(err)
+		return err
 	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(uuid, username)
 
-	if err != nil {
-		logger.Fatalln(err)
-	}
+	return err
 
 }
 
-// Returns (user exists) (password if exists)
-func dbAdminCredsQuery(username string) (bool, string) {
+// Returns (user exists, password if exists, error)
+func dbAdminCredsQuery(username string) (bool, string, error) {
 
 	stmt, err := db.Prepare("SELECT password FROM admin_creds WHERE username = ?")
 	if err != nil {
-		logger.Fatal(err)
+		return false, "", err
 	}
 	defer stmt.Close()
 	var password string
 	switch err = stmt.QueryRow(username).Scan(&password); err {
 	case sql.ErrNoRows:
-		return false, ""
+		return false, "", nil
 	case nil:
-		return true, password
+		return true, password, nil
 	default:
-		logger.Fatalln(err)
-		return false, ""
+		return false, "", nil
 	}
 
 }
 
-// Returns (user exists) (Ref token if exists)
-func dbAdminRefTokenQuery(username string) (bool, string) {
+// Returns (user exists) (Ref token if exists) (error)
+func dbAdminRefTokenQuery(username string) (bool, string, error) {
 
 	stmt, err := db.Prepare("SELECT token_id FROM admin_creds WHERE username = ?")
 	if err != nil {
@@ -255,12 +244,11 @@ func dbAdminRefTokenQuery(username string) (bool, string) {
 	var token string
 	switch err = stmt.QueryRow(username).Scan(&token); err {
 	case sql.ErrNoRows:
-		return false, ""
+		return false, "", nil
 	case nil:
-		return true, token
+		return true, token, nil
 	default:
-		logger.Fatalln(err)
-		return false, ""
+		return false, "", err
 	}
 
 }
@@ -304,6 +292,14 @@ func dbQueryReported(page int) ([]byte, error) {
 		} else {
 			votedfordeletion = true
 		}
+
+		// (hopefully) prevent xss
+		domain = bmStrict.Sanitize(domain)
+		path = bmStrict.Sanitize(path)
+		destination = bmStrict.Sanitize(destination)
+		hashed_IP = bmStrict.Sanitize(hashed_IP)
+		voted_by = bmStrict.Sanitize(voted_by)
+
 		entries = append(entries, Entry{id, domain, path, destination, times_reported, hashed_IP, votedfordeletion, voted_by})
 	}
 	if len(entries) == 0 {
@@ -311,5 +307,5 @@ func dbQueryReported(page int) ([]byte, error) {
 	}
 	entryBytes, _ := json.MarshalIndent(&entries, "", "  ")
 
-	return entryBytes, nil
+	return entryBytes, err
 }

@@ -1,7 +1,5 @@
-#Copied from: https://gist.github.com/victorsteven/07525e9c037c7940c540ab90fff15ea0#file-dockerfile
-
 # Start from golang base image
-FROM golang:alpine as builder
+FROM golang:alpine as goBuilder
 
 # ENV GO111MODULE=on
 
@@ -24,16 +22,25 @@ COPY . .
 # Build the Go app
 RUN go build -o main ./src/
 
+# Use NPM to build frontend
+FROM node:alpine as npmBuilder
+
+WORKDIR /app
+
+COPY src/adminpanel .
+
+RUN rm -rf dist
+RUN npx parcel build --public-url /admin
+
 # Start a new stage from scratch
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
 
-COPY --from=builder /app/main .
+COPY --from=goBuilder /app/main .
 
-COPY --from=builder /app/src/static ./static/
-
+COPY --from=npmBuilder /app/dist/ ./static/admin
 
 EXPOSE 5000
 

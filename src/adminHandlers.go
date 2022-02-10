@@ -1,5 +1,5 @@
 /*
-Copyright 2021 NotAProton
+Copyright 2021, 2022 NotAProton
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -100,12 +100,23 @@ func adminChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sanitize(&input.Username)
+	input.Username = sanitizeUsername(input.Username)
 
-	exists, hashedpassword := dbAdminCredsQuery(input.Username)
+	if len(input.Username) < 3 {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	exists, hashedpassword, err := dbAdminCredsQuery(input.Username)
+	if err != nil {
+		logger.Println(getRequestId(r)+" Error:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	if !exists {
 		w.WriteHeader(http.StatusUnauthorized)
-		logger.Println(getRequestId(r), "user not found:", input.Username)
+		logger.Println(getRequestId(r), "user not found:", sanitizeForLog(input.Username))
 		return
 	}
 
@@ -119,15 +130,27 @@ func adminChangePassword(w http.ResponseWriter, r *http.Request) {
 	// Hashing the password with the default cost of 10
 	hashednewPassword, err := bcrypt.GenerateFromPassword([]byte(input.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
-		logger.Println(err)
+		logger.Println(getRequestId(r)+" Error: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	dbAdminPasswordChange(input.Username, string(hashednewPassword))
+	err = dbAdminPasswordChange(input.Username, string(hashednewPassword))
+	if err != nil {
+		logger.Println(getRequestId(r) + " failed to change password for \"" + input.Username + "\" [Error:" + err.Error() + "]")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	logger.Println(getRequestId(r) + " " + input.Username + " changed their password")
 
-	dbAdminRefTokenInsert(input.Username, "")
+	err = dbAdminRefTokenInsert(input.Username, "")
+	if err != nil {
+		logger.Println(getRequestId(r) + " failed to generate new ref token for \"" + input.Username + "\" [Error:" + err.Error() + "]")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	logger.Println(getRequestId(r) + " revoked refresh token for \"" + input.Username + "\" [reason: password changed]")
 
 	w.WriteHeader(http.StatusOK)
@@ -159,7 +182,7 @@ func returnReported(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		logger.Println(getRequestId(r) + err.Error())
+		logger.Println(getRequestId(r) + " Error: " + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -195,23 +218,32 @@ func voteDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exists, votedfordeletion, votedBy := dbAdminVoteQuery(input.Domain, input.Path)
+	votedfordeletion, votedBy, err := dbAdminVoteQuery(input.Domain, input.Path)
 
-	if !exists {
+	if errors.Is(err, errnoEnt) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		logger.Println(getRequestId(r), " domain and path not found")
 		return
 	}
 
+	if err != nil {
+		logger.Println(getRequestId(r), " Error: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	if votedfordeletion != 0 {
+
+		//check if user already voted on this link
 		if votedBy == username {
 			w.WriteHeader(http.StatusConflict)
 			logger.Println(getRequestId(r), " user already voted for deletion")
 			return
 		}
+
 		err = dbAdminSoftDelete(input.Domain, input.Path)
 		if err != nil {
-			logger.Println(getRequestId(r) + err.Error())
+			logger.Println(getRequestId(r)+" error: ", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -220,9 +252,11 @@ func voteDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbAdminVoteDelete(username, input.Domain, input.Path)
+	err = dbAdminVoteDelete(username, input.Domain, input.Path)
 	if err != nil {
-		panic(err)
+		logger.Println(getRequestId(r)+" Error: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -249,9 +283,22 @@ func refTokenHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	sanitize(&input.Username)
 
-	exists, hashedpassword := dbAdminCredsQuery(input.Username)
+	input.Username = sanitizeUsername(input.Username)
+
+	if len(input.Username) < 3 {
+		w.WriteHeader(http.StatusUnauthorized)
+		logger.Println(getRequestId(r), " username too short (after sanitization)")
+		return
+	}
+
+	exists, hashedpassword, err := dbAdminCredsQuery(input.Username)
+
+	if err != nil {
+		logger.Println(getRequestId(r), " Error: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	if !exists {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -266,7 +313,13 @@ func refTokenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refTokenString := genRefToken(input.Username)
+	refTokenString, err := genRefToken(input.Username)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		logger.Println(getRequestId(r)+" Error: ", err)
+		return
+	}
 
 	logger.Println(getRequestId(r) + " generated refresh token as " + input.Username)
 
@@ -307,7 +360,7 @@ func accTokenHandler(w http.ResponseWriter, r *http.Request) {
 	username, accTokenString, err := genAccessToken(input.RefToken)
 
 	if err != nil {
-		logger.Println(getRequestId(r) + " failed to generate access token, " + err.Error())
+		logger.Println(getRequestId(r) + " failed to generate access token Error: " + err.Error())
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}

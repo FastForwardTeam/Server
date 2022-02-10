@@ -27,15 +27,15 @@ services:
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     labels:
       # Dashboard api
-    - "traefik.enable=true"
-    - "traefik.http.routers.dashboard.rule=Host(`${domain}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
-    - 'traefik.http.routers.dashboard.entrypoints=websecure'
-    - 'traefik.http.routers.dashboard.tls.certresolver=myresolver'
-    - 'traefik.http.routers.dashboard.service=api@internal'
-    - 'traefik.http.routers.dashboard.middlewares=auth'
-    - "traefik.http.middlewares.auth.basicauth.users=${dashboardcreds}"
-    # Dummy service for Swarm port detection. The port can be any valid integer value.
-    - 'traefik.http.services.api@internal.loadbalancer.server.port=8080'
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`${domain}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      - 'traefik.http.routers.dashboard.entrypoints=websecure'
+      - 'traefik.http.routers.dashboard.tls.certresolver=myresolver'
+      - 'traefik.http.routers.dashboard.service=api@internal'
+      - 'traefik.http.routers.dashboard.middlewares=auth'
+      - "traefik.http.middlewares.auth.basicauth.users=${dashboardcreds}"
+      # Dummy service for Swarm port detection. The port can be any valid integer value.
+      - 'traefik.http.services.api@internal.loadbalancer.server.port=8080'
 
     ports:
       - "443:443"
@@ -63,13 +63,17 @@ services:
       - "traefik.http.routers.ffserver.entrypoints=websecure"
       - "traefik.http.routers.ffserver.tls.certresolver=myresolver"
       - "traefik.port=5000"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: on-failure
     depends_on:
       - db
     networks:
       - web
       - internal
-  
+
   db:
     image: mariadb:10.2
     environment:
@@ -87,7 +91,6 @@ services:
       - traefik.enable=false
     networks:
       - internal
-
 
   adminer:
     image: adminer
