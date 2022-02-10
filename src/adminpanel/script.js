@@ -89,8 +89,8 @@ const request = {
               } else {
                 objMod.link = `<a href="${objMod.link}">${objMod.link}</a>`;
               }
-              if (objMod.destination.length > 25) {
-                objMod.link = `<span title="${objMod.destination}">${objMod.destination.substring(0, 25)}\u2026</a>`;
+              if (objMod.destination.length > 35) {
+                objMod.destination = `<span title="${objMod.destination}">${objMod.destination.substring(0, 35)}\u2026</a>`;
               }
               dataMod.push(objMod);
             });
