@@ -1,5 +1,5 @@
 /*
-Copyright 2021 NotAProton, mockuser404
+Copyright 2021, 2022 NotAProton, mockuser404
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"regexp"
 	"sync/atomic"
 	"time"
 )
@@ -34,16 +33,12 @@ const (
 )
 
 var (
-	version    string = "1.3.2"
-	reg        *regexp.Regexp
-	regForHTTP *regexp.Regexp
+	version string = "1.4.1"
 )
 
 func bypassed(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.URL.Query())
-	w.Header().Set("Location", r.URL.Query().Get("target"))
-	w.Header().Set("Referer", r.URL.Query().Get("referer"))
-	w.WriteHeader(http.StatusPermanentRedirect)
+	// redirect to error page
+	http.Redirect(w, r, "https://fastforward.team/crowd-bypassed", http.StatusSeeOther)
 }
 
 func all(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +53,6 @@ func all(w http.ResponseWriter, r *http.Request) {
 func main() {
 
 	parseEnv()
-	createLogFile()
 
 	logStart()
 	connectDb()
@@ -76,16 +70,8 @@ func main() {
 	}
 	logger.Println("Loaded RSA keys")
 
-	reg, err = regexp.Compile(`[^a-zA-Z0-9\/\-.%=]+`)
-	if err != nil {
-		logger.Fatal(err)
-	}
-	regForHTTP = regexp.MustCompile(`(^\w+:|^)\/\/`)
-
 	router := http.NewServeMux()
 	router.HandleFunc("/", all)
-	router.HandleFunc("/firstrun", all)
-	router.HandleFunc("/options", all)
 	router.HandleFunc("/bypassed", bypassed)
 	router.HandleFunc("/navigate", bypassed)
 	router.HandleFunc("/crowd-bypassed", bypassed)

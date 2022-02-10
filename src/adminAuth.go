@@ -1,5 +1,5 @@
 /*
-Copyright 2021 NotAProton
+Copyright 2021, 2022 NotAProton
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ func loadRSAKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 }
 
 //Returns Refresh JWT
-func genRefToken(username string) string {
+func genRefToken(username string) (string, error) {
 	uuid := uuid.New().String()
 
 	//exp is 60 days, TODO make it configureable
@@ -75,14 +75,16 @@ func genRefToken(username string) string {
 		"exp": time.Now().Add(time.Hour * 1440).Unix(),
 	})
 
-	dbAdminRefTokenInsert(username, uuid)
+	err := dbAdminRefTokenInsert(username, uuid)
+	if err != nil {
+		return "", err
+	}
 	tokenString, err := token.SignedString(RSAprivateKey)
 	if err != nil {
-		logger.Println("couldn't sign ref token")
-		return ""
+		return "", err
 	}
 
-	return tokenString
+	return tokenString, nil
 }
 
 // Takes refresh token, verifies and returns username and access token
@@ -106,7 +108,11 @@ func genAccessToken(refToken string) (username string, accToken string, err erro
 		username := claims["aud"].(string)
 		uuid := claims["jti"].(string)
 
-		ok, tokenInDB := dbAdminRefTokenQuery(username)
+		ok, tokenInDB, err := dbAdminRefTokenQuery(username)
+
+		if err != nil {
+			return "", "", err
+		}
 
 		if !ok {
 			return claims["aud"].(string), "", errors.New("user not found")

@@ -1,5 +1,5 @@
 /*
-Copyright 2021 NotAProton
+Copyright 2021, 2022 NotAProton
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	logger *log.Logger
+	logger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
 )
 
 //Shows server starting message
@@ -44,7 +44,7 @@ func logging(logger *log.Logger) func(http.Handler) http.Handler {
 				if !ok {
 					requestID = "unknown"
 				}
-				logger.Println(requestID, r.Method, r.URL.Path, r.RemoteAddr, r.UserAgent())
+				logger.Println(requestID, r.Method, r.URL.Path, r.UserAgent())
 			}()
 			next.ServeHTTP(w, r)
 		})
@@ -63,7 +63,4 @@ func tracing(nextRequestID func() string) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
-}
-func createLogFile() {
-	logger = log.New(os.Stdout, "", log.Ldate|log.Ltime)
 }
