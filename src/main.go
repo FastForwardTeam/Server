@@ -55,10 +55,13 @@ func main() {
 	parseEnv()
 
 	logStart()
-	connectDb()
+	err := connectDb()
+	if err != nil {
+		logger.Fatalln(err)
+	}
 
 	//check connection to db
-	err := db.Ping()
+	err = db.Ping()
 	if err != nil {
 		logger.Fatalln(err)
 	}
