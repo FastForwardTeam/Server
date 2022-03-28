@@ -25,7 +25,7 @@ import (
 
 var (
 	domainRegex             = regexp.MustCompile(`(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}`)
-	pathRegex               = regexp.MustCompile(`[^a-z\d&=+.\-_~/?#'%]+`)
+	pathRegex               = regexp.MustCompile(`[^A-Za-z\d&=+.\-_~/?#'%]+`)
 	bmStrict                = bluemonday.StrictPolicy()
 	whiteSpaceRegex         = regexp.MustCompile(`(\r?\n)|( {2,})|(\t)`)
 	usernameSanitizingRegex = regexp.MustCompile(`[^a-zA-Z0-9_]+`)
