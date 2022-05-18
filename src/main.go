@@ -33,7 +33,7 @@ const (
 )
 
 var (
-	version string = "1.4.4"
+	version string = "1.4.4-Patch"
 )
 
 func bypassed(w http.ResponseWriter, r *http.Request) {
