@@ -23,7 +23,7 @@ COPY . .
 RUN go build -o main ./src/
 
 # Use NPM to build frontend
-FROM node:alpine as npmBuilder
+FROM node as npmBuilder
 
 WORKDIR /app
 
