@@ -23,6 +23,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 func hashSha256(s string) string {
@@ -129,7 +130,15 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 		logger.Println(getRequestId(r), " Bad target URL")
 		return
 	}
-	t = sanitizeDomain(tURL.Host) + sanitizePath(tURL.Path)
+	targetSlice := []string{sanitizeDomain(tURL.Host), sanitizePath(tURL.Path)}
+	if tURL.Port() != "" {
+		targetSlice[0] += ":" + tURL.Port()
+	}
+	if tURL.Fragment != "" {
+		targetSlice = append(targetSlice, "#", sanitizePath(tURL.Fragment))
+	}
+
+	t = strings.Join(targetSlice, "")
 
 	if d == "" || p == "" || t == "" {
 		w.WriteHeader(http.StatusBadRequest)
