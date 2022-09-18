@@ -43,6 +43,7 @@ func loadRSAKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 	}
 
 	priv, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+
 	if err != nil {
 		return nil, nil, err
 	}
@@ -59,8 +60,10 @@ func loadRSAKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 		return nil, nil, err
 	}
 
-	pub := parsedPub.(*rsa.PublicKey)
-	return priv, pub, nil
+	pubKey, _ := parsedPub.(*rsa.PublicKey)
+	privKey, _ := priv.(*rsa.PrivateKey)
+
+	return privKey, pubKey, nil
 }
 
 //Returns Refresh JWT
