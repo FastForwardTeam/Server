@@ -32,11 +32,9 @@ func hashSha256(s string) string {
 	return hexstring
 }
 func getRequestId(r *http.Request) string {
-	requestID, ok := r.Context().Value(requestIDKey).(string)
-	if !ok {
-		requestID = "unknown"
-	}
-	return requestID
+	requestID := r.Context().Value(requestIDKey)
+
+	return requestID.(string)
 }
 
 func getUserIP(r *http.Request) string {

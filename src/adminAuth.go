@@ -42,7 +42,7 @@ func loadRSAKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 		return nil, nil, errors.New("failed to parse env var containing the private key")
 	}
 
-	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	priv, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, nil, err
 	}
