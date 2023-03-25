@@ -2,7 +2,7 @@ version: '3'
 
 services:
   traefik:
-    image: "traefik:v2.5"
+    image: "traefik:v2.9"
     container_name: "traefik"
     command:
       # - "--log.level=DEBUG"
@@ -76,7 +76,7 @@ services:
       - internal
 
   db:
-    image: mariadb:10.2
+    image: mariadb:10.11
     environment:
       MYSQL_ROOT_PASSWORD: $dbRootPass
       MYSQL_DATABASE: $dbName
@@ -115,6 +115,7 @@ services:
 
 volumes:
   database_mysql:
+
 
 networks:
   web:

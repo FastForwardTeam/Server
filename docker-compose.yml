@@ -2,7 +2,7 @@ version: '3'
 
 services:
   traefik:
-    image: "traefik:v2.5"
+    image: "traefik:v2.9"
     container_name: "traefik"
     command:
       # - "--log.level=DEBUG"
@@ -27,15 +27,15 @@ services:
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     labels:
       # Dashboard api
-    - "traefik.enable=true"
-    - "traefik.http.routers.dashboard.rule=Host(`${domain}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
-    - 'traefik.http.routers.dashboard.entrypoints=websecure'
-    - 'traefik.http.routers.dashboard.tls.certresolver=myresolver'
-    - 'traefik.http.routers.dashboard.service=api@internal'
-    - 'traefik.http.routers.dashboard.middlewares=auth'
-    - "traefik.http.middlewares.auth.basicauth.users=${dashboardcreds}"
-    # Dummy service for Swarm port detection. The port can be any valid integer value.
-    - 'traefik.http.services.api@internal.loadbalancer.server.port=8080'
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`${domain}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      - 'traefik.http.routers.dashboard.entrypoints=websecure'
+      - 'traefik.http.routers.dashboard.tls.certresolver=myresolver'
+      - 'traefik.http.routers.dashboard.service=api@internal'
+      - 'traefik.http.routers.dashboard.middlewares=auth'
+      - "traefik.http.middlewares.auth.basicauth.users=${dashboardcreds}"
+      # Dummy service for Swarm port detection. The port can be any valid integer value.
+      - 'traefik.http.services.api@internal.loadbalancer.server.port=8080'
 
     ports:
       - "443:443"
@@ -72,9 +72,9 @@ services:
     networks:
       - web
       - internal
-  
+
   db:
-    image: mariadb:10.2
+    image: mariadb:10.11
     environment:
       MYSQL_ROOT_PASSWORD: $dbRootPass
       MYSQL_DATABASE: $dbName
@@ -90,7 +90,6 @@ services:
       - traefik.enable=false
     networks:
       - internal
-
 
   adminer:
     image: adminer
@@ -114,6 +113,7 @@ services:
 
 volumes:
   database_mysql:
+
 
 networks:
   web:
