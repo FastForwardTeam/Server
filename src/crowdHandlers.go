@@ -132,6 +132,9 @@ func crowdContributeV1(w http.ResponseWriter, r *http.Request) {
 	if tURL.Port() != "" {
 		targetSlice[0] += ":" + tURL.Port()
 	}
+	if tURL.RawQuery != "" {
+		targetSlice = append(targetSlice, "?", sanitizePath(tURL.RawQuery))
+	}
 	if tURL.Fragment != "" {
 		targetSlice = append(targetSlice, "#", sanitizePath(tURL.Fragment))
 	}
